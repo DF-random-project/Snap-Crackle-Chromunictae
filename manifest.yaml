@@ -1,0 +1,46 @@
+display_information:
+  name: Sirsnap
+  description: fill out your attendance!
+  background_color: "#7e00de"
+
+features:
+  bot_user:
+    display_name: Sirsnap
+    always_online: true
+  slash_commands:
+    - command: /hello
+      description: Get a friendly greeting from the bot
+      should_escape: false
+      url: https://sirsnap.bore.dunkirk.sh/slack
+    - command: /attendance
+      description: Track your attendance - check in, check out, view status
+      should_escape: false
+      url: https://sirsnap.bore.dunkirk.sh/slack
+      usage_hint: "[in|out|status|help]"
+  
+oauth_config:
+  scopes:
+    bot:
+      - app_mentions:read
+      - channels:history
+      - chat:write
+      - commands
+      - im:history
+      - im:read
+      - im:write
+      - users:read
+
+event_subscriptions:
+  request_url: https://sirsnap.bore.dunkirk.sh/slack
+  bot_events:
+    - app_mention
+    - message.im
+
+interactivity:
+  is_enabled: true
+  request_url: https://sirsnap.bore.dunkirk.sh/slack
+
+settings:
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false

@@ -1,0 +1,273 @@
+import { SlackApp, SlackEdgeAppEnv } from "slack-edge";
+
+export default {
+	async fetch(
+		request: Request,
+		env: SlackEdgeAppEnv,
+		ctx: ExecutionContext,
+	): Promise<Response> {
+		const app = new SlackApp({ env })
+			.command(
+				"/hello",
+				async (req) => {
+					return "👋 Hello there! I'm Sirsnap, your attendance bot for Team 1317!";
+				},
+				async ({ context: { respond } }) => {
+					await respond({
+						text: "Hello there! I'm Sirsnap 👋",
+						blocks: [
+							{
+								type: "section",
+								text: {
+									type: "mrkdwn",
+									text: `Hello there! I'm Sirsnap, your attendance tracking bot for Team 1317 Digital Fusion! 👋`,
+								},
+							},
+							{
+								type: "actions",
+								elements: [
+									{
+										type: "button",
+										text: {
+											type: "plain_text",
+											text: "Check In ✅",
+										},
+										action_id: "check-in",
+										style: "primary",
+									},
+									{
+										type: "button",
+										text: {
+											type: "plain_text",
+											text: "Check Out ❌",
+										},
+										action_id: "check-out",
+										style: "danger",
+									},
+								],
+							},
+						],
+					});
+				},
+			)
+			.command(
+				"/attendance",
+				async (req) => {
+					const subcommand = req.payload.text.trim().split(" ")[0];
+					switch (subcommand) {
+						case "in":
+						case "checkin":
+							return "✅ Checking you in...";
+						case "out":
+						case "checkout":
+							return "❌ Checking you out...";
+						case "status":
+							return "📊 Getting your status...";
+						default:
+							return "📋 Use: /attendance [in|out|status|help]";
+					}
+				},
+				async ({ payload, context: { respond } }) => {
+					const subcommand = payload.text.trim().split(" ")[0];
+					const now = Date.now();
+
+					switch (subcommand) {
+						case "in":
+						case "checkin":
+							await respond({
+								text: "✅ Checked in successfully!",
+								blocks: [
+									{
+										type: "section",
+										text: {
+											type: "mrkdwn",
+											text: `✅ *Welcome to the workspace!*\n\nYou've successfully checked in at <!date^${Math.floor(now / 1000)}^{time_secs}|${new Date(now).toLocaleTimeString()}>`,
+										},
+									},
+									{
+										type: "context",
+										elements: [
+											{
+												type: "mrkdwn",
+												text: "💡 Use `/attendance out` when you're leaving",
+											},
+										],
+									},
+								],
+							});
+							break;
+
+						case "out":
+						case "checkout":
+							await respond({
+								text: "❌ Checked out successfully!",
+								blocks: [
+									{
+										type: "section",
+										text: {
+											type: "mrkdwn",
+											text: `❌ *Thanks for your time today!*\n\nYou've checked out at <!date^${Math.floor(now / 1000)}^{time_secs}|${new Date(now).toLocaleTimeString()}>`,
+										},
+									},
+									{
+										type: "context",
+										elements: [
+											{
+												type: "mrkdwn",
+												text: "💡 Use `/attendance in` when you return tomorrow!",
+											},
+										],
+									},
+								],
+							});
+							break;
+
+						case "status":
+							await respond({
+								text: "📊 Your attendance status",
+								blocks: [
+									{
+										type: "section",
+										text: {
+											type: "mrkdwn",
+											text: "📊 *Your Attendance Status*\n\n🔍 _Status tracking coming soon!_\n\nFor now, you can check in and out using:\n• `/attendance in` - Check in\n• `/attendance out` - Check out",
+										},
+									},
+									{
+										type: "actions",
+										elements: [
+											{
+												type: "button",
+												text: {
+													type: "plain_text",
+													text: "Check In ✅",
+												},
+												action_id: "attendance-checkin",
+												style: "primary",
+											},
+											{
+												type: "button",
+												text: {
+													type: "plain_text",
+													text: "Check Out ❌",
+												},
+												action_id: "attendance-checkout",
+												style: "danger",
+											},
+										],
+									},
+								],
+							});
+							break;
+
+						default:
+							await respond({
+								text: "📋 Sirsnap Help - Attendance Tracking",
+								blocks: [
+									{
+										type: "section",
+										text: {
+											type: "mrkdwn",
+											text: "📋 *Sirsnap Help - Attendance Tracking*",
+										},
+									},
+									{
+										type: "section",
+										text: {
+											type: "mrkdwn",
+											text: "*Available Commands:*\n• `/attendance in` - Check in to the workspace\n• `/attendance out` - Check out of the workspace\n• `/attendance status` - View your current status\n• `/attendance help` - Show this help message",
+										},
+									},
+									{
+										type: "actions",
+										elements: [
+											{
+												type: "button",
+												text: {
+													type: "plain_text",
+													text: "Check In ✅",
+												},
+												action_id: "attendance-checkin",
+												style: "primary",
+											},
+											{
+												type: "button",
+												text: {
+													type: "plain_text",
+													text: "Check Out ❌",
+												},
+												action_id: "attendance-checkout",
+												style: "danger",
+											},
+										],
+									},
+								],
+							});
+							break;
+					}
+				},
+			)
+			.action("check-in", async ({ context: { respond } }) => {
+				const now = Date.now();
+				await respond({
+					text: "✅ Checked in successfully!",
+					blocks: [
+						{
+							type: "section",
+							text: {
+								type: "mrkdwn",
+								text: `✅ *Welcome to the workspace!*\n\nYou've successfully checked in at <!date^${Math.floor(now / 1000)}^{time_secs}|${new Date(now).toLocaleTimeString()}>`,
+							},
+						},
+					],
+				});
+			})
+			.action("check-out", async ({ context: { respond } }) => {
+				const now = Date.now();
+				await respond({
+					text: "❌ Checked out successfully!",
+					blocks: [
+						{
+							type: "section",
+							text: {
+								type: "mrkdwn",
+								text: `❌ *Thanks for your time today!*\n\nYou've checked out at <!date^${Math.floor(now / 1000)}^{time_secs}|${new Date(now).toLocaleTimeString()}>`,
+							},
+						},
+					],
+				});
+			})
+			.action("attendance-checkin", async ({ context: { respond } }) => {
+				const now = Date.now();
+				await respond({
+					text: "✅ Checked in successfully!",
+					blocks: [
+						{
+							type: "section",
+							text: {
+								type: "mrkdwn",
+								text: `✅ *Welcome to the workspace!*\n\nYou've successfully checked in at <!date^${Math.floor(now / 1000)}^{time_secs}|${new Date(now).toLocaleTimeString()}>`,
+							},
+						},
+					],
+				});
+			})
+			.action("attendance-checkout", async ({ context: { respond } }) => {
+				const now = Date.now();
+				await respond({
+					text: "❌ Checked out successfully!",
+					blocks: [
+						{
+							type: "section",
+							text: {
+								type: "mrkdwn",
+								text: `❌ *Thanks for your time today!*\n\nYou've checked out at <!date^${Math.floor(now / 1000)}^{time_secs}|${new Date(now).toLocaleTimeString()}>`,
+							},
+						},
+					],
+				});
+			});
+
+		return await app.run(request, ctx);
+	},
+} satisfies ExportedHandler<Env>;
