@@ -41,9 +41,12 @@ export default {
 		  }
 		});
 
-		app.action("test_action_id", async ({action, ack})=>{
-			await ack();
-			console.log("whats action? "+JSON.stringify(action));
+		app.action("test_action_id", async ({action, view, ack})=>{
+			try {
+				console.log("whats action? "+JSON.stringify(action) + " | whats view? "+JSON.stringify(view)+ " | whats ack? "+JSON.stringify(ack));
+			} catch(error){
+				console.log(error);
+			}
 		});
 
 		return await app.run(request, ctx);
