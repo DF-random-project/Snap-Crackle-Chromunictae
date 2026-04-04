@@ -33,89 +33,17 @@ export default {
 
 		    const result = await client.views.open({
 		      trigger_id: payload.trigger_id,
-		      view: {
-	"type": "modal",
-	"title": {
-		"type": "plain_text",
-		"text": "My App",
-		"emoji": true
-	},
-	"submit": {
-		"type": "plain_text",
-		"text": "Submit",
-		"emoji": true
-	},
-	"close": {
-		"type": "plain_text",
-		"text": "Cancel",
-		"emoji": true
-	},
-	"blocks": [
-		{
-			"type": "input",
-			"element": {
-				"type": "radio_buttons",
-				"options": [
-					{
-						"text": {
-							"type": "plain_text",
-							"text": "first radial button",
-							"emoji": true
-						},
-						"value": "value-0"
-					},
-					{
-						"text": {
-							"type": "plain_text",
-							"text": "cooll button 2",
-							"emoji": true
-						},
-						"value": "value-1"
-					},
-					{
-						"text": {
-							"type": "plain_text",
-							"text": "extra option 3",
-							"emoji": true
-						},
-						"value": "value-2"
-					}
-				],
-				"action_id": "radio_buttons-action"
-			},
-			"label": {
-				"type": "plain_text",
-				"text": "Label",
-				"emoji": true
-			},
-			"optional": false
-		},
-		{
-			"type": "divider"
-		},
-		{
-			"dispatch_action": true,
-			"type": "input",
-			"element": {
-				"type": "plain_text_input",
-				"action_id": "action1"
-			},
-			"label": {
-				"type": "plain_text",
-				"text": "input label :slack:",
-				"emoji": true
-			}
-		},
-		{
-			"type": "divider"
-		}
-	]
-}
+		      view: {"type":"modal","submit":{"type":"plain_text","text":"Submit","emoji":true},"close":{"type":"plain_text","text":"Cancel","emoji":true},"title":{"type":"plain_text","text":"test view","emoji":true},"blocks":[{"dispatch_action":true,"type":"input","element":{"type":"plain_text_input","action_id":"test_action_id"},"label":{"type":"plain_text","text":"Label","emoji":true},"optional":false}]}
 		    });
 		    console.log(result);
 		  } catch (error) {
 		    console.error(error);
 		  }
+		});
+
+		app.action("test_action_id", async ({action, ack})=>{
+			await ack();
+			console.log("whats action? "+JSON.stringify(action));
 		});
 
 		return await app.run(request, ctx);
