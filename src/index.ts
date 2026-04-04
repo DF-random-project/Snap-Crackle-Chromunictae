@@ -24,10 +24,14 @@ export default {
 			console.log("/est 'lazy' listner got ran!");
 		});
 
-		app.command("/view", async ({ context, body, client }) => {
+		app.command("/view", async ({ context, payload) => {
+			console.log("whats context?",context);
+			console.log("whats payload?",payload);
 		  try {
+
+			const client = context.client;
+
 		    const result = await client.views.open({
-		      trigger_id: body.trigger_id,
 		      view: {
 		        type: "modal",
 		        title: {
