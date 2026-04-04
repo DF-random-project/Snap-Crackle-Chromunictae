@@ -90,38 +90,23 @@ export default {
 
 		app.action("repeat", async ({payload, context})=>{
 			try {
-				console.log("payload: "+JSON.stringify(payload)+" | context: "+JSON.stringify(context));
+				console.log("payload: "+JSON.stringify(payload)+" | context: "+JSON.stringify(context)+" | slack bot token: "+env.SLACK_BOT_TOKEN);
 
-				const checkboxAction = payload.actions[0] as CheckboxesAction;
-				const selectedOptions = checkboxAction.selected_options;
-
-				await payload.client.views.update({
-					view_id: payload.view.id,
-					hash: payload.view.hash,
-					view: {
-						type: "modal",
-						callback_id: payload.view.callback_id,
-						title: payload.view.title,
-						blocks:[
-								{
-									"type": "section",
-									"text": {
-										"type": "plain_text",
-										"text": "your view has been updated! via a client view update!",
-										"emoji": true
-									}
-								}
-							]
-					}
-				});
-
-				return {
-					response_action: "update",
-					view: {
-						type: "modal",
-						callback_id: payload.view.callback_id,
-						title: payload.view.title,
-						blocks:[
+				await fetch("https://slack.com/api/views.update",{
+					method:"POST",
+					headers:{
+						"Content-type":"application/json",
+						"Authorization":`Bearer ${env.SLACK_BOT_TOKEN}`
+					},
+					body: JSON.stringify({
+						view_id: payload.view.id,
+						hash: payload.view.hash,
+						view:{
+							type:"modal",
+							callback_id: payload.view.callback_id,
+							title:{type:"plain_text",text:"pls just updtae!"},
+							submit:{type:"plain_text",text:"Confirm"},
+							blocks:[
 								{
 									"type": "section",
 									"text": {
@@ -131,10 +116,9 @@ export default {
 									}
 								}
 							]
-					}
-				}
-
-				
+						}
+					})
+				});		
 			} catch (error) {
 				console.log(error);
 			}
