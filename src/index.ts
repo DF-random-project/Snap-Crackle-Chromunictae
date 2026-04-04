@@ -58,9 +58,10 @@ export default {
 			}
 		});
 
+
 		app.command("/newmeeting",async ({context, payload})=>{
 			try {
-				await context.client.views.open({
+				const res = await context.client.views.open({
 					trigger_id: payload.trigger_id,
 					view: {
 						"type": "modal",
@@ -81,24 +82,32 @@ export default {
 						}, blocks: getNewMeetingBlocks(false)
 					}
 			});
+			console.log("res from opeing view:"+JSON.stringify(res));
 			} catch (error) {
 				console.log(error);
 			}
 		});
 
-		app.action("repeat", async ({payload, view, context,client,ack})=>{
+		app.action("repeat", async ({payload, context})=>{
 			try {
-				console.log("ack "+JSON.stringify(ack)+" | payload: "+JSON.stringify(payload)+" | view: "+JSON.stringify(view)+" | context: "+JSON.stringify(context)+" | client: "+JSON.stringify(client));
+				console.log("payload: "+JSON.stringify(payload)+" | context: "+JSON.stringify(context));
 
-				return {
-					response_action: "update",
+				const client = context.client;
+
+				client.views.update({
+					view_id: payload.container.view_id,
+					hash: payload.view.hash,
 					view:{
-						type: "modal",
-						callback_id: "updated-modal",
-						title: {type:"plain_text",text:"updated modal"},
-						blocks: getNewMeetingBlocks(true)
+						type:"modal",
+						title:{
+							text:"a very hard to update view!",
+							type:"plain_text"
+						},
+						blocks:[]
 					}
-				}
+				});
+
+				return {"response_action":"update","view":{"type":"modal","title":{"type":"plain_text","text":"Updated view"},"blocks":[{"type":"section","text":{"type":"plain_text","text":"I've changed and I'll never be the same. You must believe me."}}]}};
 			} catch (error) {
 				console.log(error);
 			}
