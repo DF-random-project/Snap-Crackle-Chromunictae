@@ -24,7 +24,7 @@ export default {
 			console.log("/est 'lazy' listner got ran!");
 		});
 
-		app.command("/view", async ({ context, payload) => {
+		app.command("/view", async ({ context, payload}) => {
 			console.log("whats context?",context);
 			console.log("whats payload?",payload);
 		  try {
