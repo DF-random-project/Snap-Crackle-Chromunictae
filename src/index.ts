@@ -1,5 +1,12 @@
 import { SlackApp, SlackEdgeAppEnv } from 'slack-cloudflare-workers';
 
+function getNewMeetingBlocks(withRepeat: boolean){
+	if(!withRepeat){
+		return '[{"type":"input","element":{"type":"plain_text_input","action_id":"name"},"label":{"type":"plain_text","text":"Name","emoji":true},"optional":false},{"type":"input","element":{"type":"datetimepicker","action_id":"time"},"label":{"type":"plain_text","text":"Time","emoji":true},"optional":false},{"type":"actions","elements":[{"type":"checkboxes","options":[{"text":{"type":"plain_text","text":":repeat: Repeat","emoji":true},"value":"value-2"}],"action_id":"repeat"}]}]';
+	}
+	return '[{"type":"input","element":{"type":"plain_text_input","action_id":"name"},"label":{"type":"plain_text","text":"Name","emoji":true},"optional":false},{"type":"input","element":{"type":"datetimepicker","action_id":"time"},"label":{"type":"plain_text","text":"Time","emoji":true},"optional":false},{"type":"actions","elements":[{"type":"checkboxes","options":[{"text":{"type":"plain_text","text":":repeat: Repeat","emoji":true},"value":"value-2"}],"action_id":"repeat"}]},{"type":"input","element":{"type":"datepicker","initial_date":"1990-04-28","placeholder":{"type":"plain_text","text":"Select a date","emoji":true},"action_id":"untilwhen"},"label":{"type":"plain_text","text":"Until when?","emoji":true},"optional":false}]';
+}
+
 export default {
 	async fetch(request: Request, env: SlackEdgeAppEnv, ctx: ExecutionContext): Promise<Response> {
 		const app = new SlackApp({ env }).command(
@@ -47,6 +54,52 @@ export default {
 				const textValue = payload.actions[0].value;
 				console.log("input value: "+textValue);
 			} catch(error){
+				console.log(error);
+			}
+		});
+
+		app.command("/newmeeting",async ({context, payload})=>{
+			try {
+				await context.client.views.open({
+					trigger_id: payload.trigger_id,
+					view: {
+						"type": "modal",
+						"submit": {
+							"type": "plain_text",
+							"text": "Submit",
+							"emoji": true
+						},
+						"close": {
+							"type": "plain_text",
+							"text": "Cancel",
+							"emoji": true
+						},
+						"title": {
+							"type": "plain_text",
+							"text": "test view",
+							"emoji": true
+						}, blocks: getNewMeetingBlocks(false)
+					}
+			});
+			} catch (error) {
+				console.log(error);
+			}
+		});
+
+		app.action("repeat", async ({payload, view, context,client,ack})=>{
+			try {
+				console.log("ack "+JSON.stringify(ack)+" | payload: "+JSON.stringify(payload)+" | view: "+JSON.stringify(view)+" | context: "+JSON.stringify(context)+" | client: "+JSON.stringify(client));
+
+				return {
+					response_action: "update",
+					view:{
+						type: "modal",
+						callback_id: "updated-modal",
+						title: {type:"plain_text",text:"updated modal"},
+						blocks: getNewMeetingBlocks(true)
+					}
+				}
+			} catch (error) {
 				console.log(error);
 			}
 		});
