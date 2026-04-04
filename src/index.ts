@@ -93,10 +93,13 @@ export default {
 			} catch (error) {
 				console.log(error);
 			}
-		}, async({payload})=>{
+		}, async(req)=>{
 			//lazy worker
+			console.log("start laxry worker");
 			try {
 				console.log("LAZY WORKER new_meeting submission req "+JSON.stringify(req));
+
+				const payload = req.payload;
 
 				const view = payload.view;
 				const blocks = view.blocks;
