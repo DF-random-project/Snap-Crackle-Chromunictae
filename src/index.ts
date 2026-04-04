@@ -33,10 +33,7 @@ export default {
 		});
 
 		app.command("/view", async ({ context, payload}) => {
-			// console.log("whats context? " +JSON.stringify(context));
-			// console.log("whats payload? ",+JSON.stringify(payload));
 		  try {
-
 			const client = context.client;
 
 		    const result = await client.views.open({
@@ -59,7 +56,6 @@ export default {
 			}
 		});
 
-
 		app.command("/newmeeting",async ({context, payload})=>{
 			try {
 				const res = await context.client.views.open({
@@ -78,7 +74,7 @@ export default {
 						},
 						"title": {
 							"type": "plain_text",
-							"text": "test view",
+							"text": "Create a new meeting!",
 							"emoji": true
 						}, blocks: getNewMeetingBlocks(false)
 					}
@@ -91,9 +87,10 @@ export default {
 
 		app.action("repeat", async ({payload, context})=>{
 			try {
-				console.log("payload: "+JSON.stringify(payload)+" | context: "+JSON.stringify(context));
-
-				await Utils.updateModal(payload, getNewMeetingBlocks(true), env.SLACK_BOT_TOKEN);
+				const actions = payload.actions;
+				const checked: boolean = actions.selected_options.length > 0;
+				
+				await Utils.updateModal(payload, getNewMeetingBlocks(checked), env.SLACK_BOT_TOKEN);				
 			} catch (error) {
 				console.log(error);
 			}
