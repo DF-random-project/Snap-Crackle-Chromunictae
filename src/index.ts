@@ -25,8 +25,8 @@ export default {
 		});
 
 		app.command("/view", async ({ context, payload}) => {
-			console.log("whats context? " +JSON.stringify(context));
-			console.log("whats payload? ",+JSON.stringify(payload));
+			// console.log("whats context? " +JSON.stringify(context));
+			// console.log("whats payload? ",+JSON.stringify(payload));
 		  try {
 
 			const client = context.client;
@@ -34,25 +34,53 @@ export default {
 		    const result = await client.views.open({
 		      trigger_id: payload.trigger_id,
 		      view: {
-		        type: "modal",
-		        title: {
-		          type: "plain_text",
-		          text: "My Modal",
-		        },
-		        blocks: [
-		          {
-		            type: "section",
-		            text: {
-		              type: "mrkdwn",
-		              text: "This is a modal",
-		            },
-		          },
-		        ],
-		        submit: {
-		          type: "plain_text",
-		          text: "Submit",
-		        },
-		      },
+				type: "modal",
+				title:{
+					type: "plain_text",
+					text: "Modal Title"
+				},
+				blocks: [
+					{"type":"input","element":{"type":"radio_buttons","options":[{"text":{"type":"plain_text","text":"first radial button","emoji":true},"value":"value-0"},{"text":{"type":"plain_text","text":"cooll button 2","emoji":true},"value":"value-1"},{"text":{"type":"plain_text","text":"extra option 3","emoji":true},"value":"value-2"}],"action_id":"radio_buttons-action"},"label":{"type":"plain_text","text":"Label","emoji":true},"optional":false},
+					{type:"divider"},
+					{
+						dispatch_action:true,
+						type: "input",
+						element:{
+							type: "plain_text_input",
+							action_id: "action1",
+						},
+						label:{
+							type:"plain_text",
+							text:"input label :slack:",
+							emoji:true,
+						}
+					},
+					{type:"divider"},
+					{
+						type:"context_actions",
+						elements:[
+							{
+								"type": "feedback_buttons",
+								"action_id": "feedback",
+								"positive_button": {
+									"text": {
+										"type": "plain_text",
+										"text": "Good Response"
+									},
+									"value": "positive"
+								},
+								"negative_button": {
+									"text": {
+										"type": "plain_text",
+										"text": "Bad Response"
+									},
+									"value": "negative"
+								}
+							}
+						]
+					}
+				],
+			  },
 		    });
 		    console.log(result);
 		  } catch (error) {
