@@ -104,6 +104,7 @@ export default {
 				const view = payload.view;
 				const blocks = view.blocks;
 				const state = view.state;
+				const values = view.values;
 
 				let name: String = '';
 				let time: number = -1;
@@ -116,13 +117,13 @@ export default {
 					console.log(`block_id: ${block_id}, element: ${element}, action_id: ${action_id}.`);
 					switch(action_id){
 						case 'name':
-							name = state[block_id].name.value;
+							name = values[block_id].name.value;
 							break;
 						case 'time':
-							time = state[block_id].time.value;
+							time = values[block_id].time.value;
 							break;
 						case 'repeat':
-							repeat = state[block_id].repeat.selected_options.length > 0;
+							repeat = values[block_id].repeat.selected_options.length > 0;
 							break;
 					}
 				}
