@@ -104,7 +104,7 @@ export default {
 				const view = payload.view;
 				const blocks = view.blocks;
 				const state = view.state;
-				const values = view.values;
+				const values = state.values;
 
 				let name: String = '';
 				let time: number = -1;
