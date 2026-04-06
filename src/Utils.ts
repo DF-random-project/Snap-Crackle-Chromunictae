@@ -8,8 +8,15 @@
  * @param view a argument that gives you the option to completly override thr view
  * @returns a promise the resolves to a `Response` object. Directly from a fetch
  */
-export function updateModal(payload, blocks, token, title?, submit?, view?) {
-	let body = {
+export function updateModal(
+	payload: any,
+	blocks: any,
+	token: string,
+	title?: any,
+	submit?: any,
+	view?: any
+) {
+	let body: any = {
 		view_id: payload.view.id,
 		hash: payload.view.hash,
 		view: {},

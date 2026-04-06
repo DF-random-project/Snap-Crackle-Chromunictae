@@ -21,9 +21,9 @@ export default {
 		const url = new URL(request.url);
 
 		if (url.pathname.startsWith('/api/slack')) {
-			const slackApp = new SlackApp({ env });
+			const slackApp = new SlackApp({ env: env as any });
 			for (const [feature, handler] of Object.entries(features)) {
-				if (typeof handler === "function") await handler(slackApp, env);
+				if (typeof handler === "function") await handler(slackApp as any, env);
 			}
 			return await slackApp.run(request, ctx);
 		}

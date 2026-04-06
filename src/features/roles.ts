@@ -50,7 +50,9 @@ function buildSetRoleModal(initialUsers: string[] = [], initialRole?: Role): any
 
 const roles = async (slackApp: SlackApp<SlackEdgeAppEnv>, env: Env) => {
   slackApp.command('/setrole', async ({ context, payload }) => {
-    if (!await isAdmin(env.DB, context.client, context.userId)) {
+    const userId = context.userId;
+    if (!userId) return;
+    if (!await isAdmin(env.DB, context.client, userId)) {
       await context.respond({ response_type: 'ephemeral', text: '❌ Only workspace admins can set roles.' });
       return;
     }

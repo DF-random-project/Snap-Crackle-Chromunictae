@@ -290,8 +290,10 @@ function buildRsvpModal(meetingId: number, status: 'yes' | 'maybe' | 'no', meeti
 const meetings = async (slackApp: SlackApp<SlackEdgeAppEnv>, env: Env) => {
   slackApp.command('/meetings', async ({ context, payload }) => {
     const now = Math.floor(Date.now() / 1000);
+    const userId = context.userId;
+    if (!userId) return;
     const [adminUser, upcomingMeetings, cancelledMeetings] = await Promise.all([
-      isAdmin(env.DB, context.client, context.userId),
+      isAdmin(env.DB, context.client, userId),
       env.DB.prepare(
         'SELECT id, name, scheduled_at FROM meeting WHERE scheduled_at > ? AND cancelled = 0 ORDER BY scheduled_at LIMIT 15'
       ).bind(now).all<{ id: number; name: string; scheduled_at: number }>(),
@@ -312,8 +314,12 @@ const meetings = async (slackApp: SlackApp<SlackEdgeAppEnv>, env: Env) => {
   }));
 
   slackApp.action('meeting_open_edit', async ({ context, payload }) => {
-    if (!await isAdmin(env.DB, context.client, context.userId)) return;
-    const meetingId = Number((payload as any).actions[0].value);
+    const userId = context.userId;
+    if (!userId) return;
+    if (!await isAdmin(env.DB, context.client, userId)) return;
+    const value = (payload as any).actions?.[0]?.value;
+    if (!value) return;
+    const meetingId = Number(value);
     const meeting = await env.DB.prepare(
       'SELECT id, name, description, scheduled_at, channel_id, cancelled FROM meeting WHERE id = ?'
     ).bind(meetingId).first<{ id: number; name: string; description: string; scheduled_at: number; channel_id: string; cancelled: number }>();
@@ -336,8 +342,12 @@ const meetings = async (slackApp: SlackApp<SlackEdgeAppEnv>, env: Env) => {
   });
 
   slackApp.action('meeting_cancel', async ({ context, payload }) => {
-    if (!await isAdmin(env.DB, context.client, context.userId)) return;
-    const meetingId = Number((payload as any).actions[0].value);
+    const userId = context.userId;
+    if (!userId) return;
+    if (!await isAdmin(env.DB, context.client, userId)) return;
+    const value = (payload as any).actions?.[0]?.value;
+    if (!value) return;
+    const meetingId = Number(value);
     const rootViewId = (payload as any).view.root_view_id;
     await env.DB.prepare('UPDATE meeting SET cancelled = 1 WHERE id = ?').bind(meetingId).run();
     const meeting = await env.DB.prepare(
@@ -353,8 +363,12 @@ const meetings = async (slackApp: SlackApp<SlackEdgeAppEnv>, env: Env) => {
   });
 
   slackApp.action('meeting_restore', async ({ context, payload }) => {
-    if (!await isAdmin(env.DB, context.client, context.userId)) return;
-    const meetingId = Number((payload as any).actions[0].value);
+    const userId = context.userId;
+    if (!userId) return;
+    if (!await isAdmin(env.DB, context.client, userId)) return;
+    const value = (payload as any).actions?.[0]?.value;
+    if (!value) return;
+    const meetingId = Number(value);
     const rootViewId = (payload as any).view.root_view_id;
     await env.DB.prepare('UPDATE meeting SET cancelled = 0 WHERE id = ?').bind(meetingId).run();
     const meeting = await env.DB.prepare(
@@ -370,8 +384,12 @@ const meetings = async (slackApp: SlackApp<SlackEdgeAppEnv>, env: Env) => {
   });
 
   slackApp.action('meeting_delete', async ({ context, payload }) => {
-    if (!await isAdmin(env.DB, context.client, context.userId)) return;
-    const meetingId = Number((payload as any).actions[0].value);
+    const userId = context.userId;
+    if (!userId) return;
+    if (!await isAdmin(env.DB, context.client, userId)) return;
+    const value = (payload as any).actions?.[0]?.value;
+    if (!value) return;
+    const meetingId = Number(value);
     const rootViewId = (payload as any).view.root_view_id;
     const meeting = await env.DB.prepare(
       'SELECT id, name, description, scheduled_at, channel_id, message_ts, cancelled FROM meeting WHERE id = ?'
@@ -482,7 +500,9 @@ const meetings = async (slackApp: SlackApp<SlackEdgeAppEnv>, env: Env) => {
 
   for (const status of ['yes', 'maybe', 'no'] as const) {
     slackApp.action(`rsvp_${status}`, async ({ context, payload }) => {
-      const meetingId = Number((payload as any).actions[0].value);
+      const value = (payload as any).actions?.[0]?.value;
+      if (!value) return;
+      const meetingId = Number(value);
       const meeting = await env.DB.prepare('SELECT name FROM meeting WHERE id = ?')
         .bind(meetingId).first<{ name: string }>();
       await context.client.views.open({

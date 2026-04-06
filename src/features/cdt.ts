@@ -158,8 +158,10 @@ function buildEditModal(
 
 const cdt = async (slackApp: SlackApp<SlackEdgeAppEnv>, env: Env) => {
   slackApp.command('/cdt', async ({ context, payload }) => {
+    const userId = context.userId;
+    if (!userId) return;
     const [adminUser, cdts] = await Promise.all([
-      isAdmin(env.DB, context.client, context.userId),
+      isAdmin(env.DB, context.client, userId),
       env.DB.prepare(`
         SELECT c.id, c.name, c.handle, COUNT(m.user_id) as member_count
         FROM cdt c LEFT JOIN cdt_member m ON m.cdt_id = c.id
@@ -179,9 +181,12 @@ const cdt = async (slackApp: SlackApp<SlackEdgeAppEnv>, env: Env) => {
   }));
 
   slackApp.action('cdt_open_edit', async ({ context, payload }) => {
-    if (!await isAdmin(env.DB, context.client, context.userId)) return;
-    const cdtId = (payload as any).actions?.[0]?.value;
-    if (!cdtId) return;
+    const userId = context.userId;
+    if (!userId) return;
+    if (!await isAdmin(env.DB, context.client, userId)) return;
+    const value = (payload as any).actions?.[0]?.value;
+    if (!value) return;
+    const cdtId = String(value);
 
     const cdtRow = await env.DB.prepare('SELECT id, name, channel_id FROM cdt WHERE id = ?')
       .bind(cdtId).first<{ id: string; name: string; channel_id: string }>();
@@ -198,9 +203,12 @@ const cdt = async (slackApp: SlackApp<SlackEdgeAppEnv>, env: Env) => {
   });
 
   slackApp.action('cdt_delete', async ({ context, payload }) => {
-    if (!await isAdmin(env.DB, context.client, context.userId)) return;
-    const cdtId = (payload as any).actions?.[0]?.value;
-    if (!cdtId) return;
+    const userId = context.userId;
+    if (!userId) return;
+    if (!await isAdmin(env.DB, context.client, userId)) return;
+    const value = (payload as any).actions?.[0]?.value;
+    if (!value) return;
+    const cdtId = String(value);
 
     const cdtRow = await env.DB.prepare('SELECT id, name, handle FROM cdt WHERE id = ?')
       .bind(cdtId).first<{ id: string; name: string; handle: string }>();
