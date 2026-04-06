@@ -10,6 +10,14 @@
 	"compatibility_flags": [
 		"nodejs_compat"
 	],
+
+	"d1_databases":[
+		{
+			"binding": "DB",
+			"database_name":"sirsnap-prod",
+			"database_id":"5268db1c-5d12-49fc-b744-46e496003213"
+		}
+	],
 	/**
 	 * Environment Variables
 	 * Add these to your Cloudflare Workers environment:
