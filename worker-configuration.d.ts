@@ -9,6 +9,7 @@ declare namespace Cloudflare {
 		NODE_ENV: "production";
 		SLACK_SIGNING_SECRET: string;
 		SLACK_BOT_TOKEN: string;
+        DB;
 	}
 }
 interface Env extends Cloudflare.Env {}
