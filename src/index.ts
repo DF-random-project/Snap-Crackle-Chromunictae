@@ -20,7 +20,7 @@ export default {
 	): Promise<Response> {
 		const url = new URL(request.url);
 
-		if (url.pathname.startsWith('/api/slack')) {
+		if (url.pathname.startsWith("/api/slack")) {
 			const slackApp = new SlackApp({ env: env as any });
 			for (const [feature, handler] of Object.entries(features)) {
 				if (typeof handler === "function") await handler(slackApp as any, env);

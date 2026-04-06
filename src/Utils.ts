@@ -14,7 +14,7 @@ export function updateModal(
 	token: string,
 	title?: any,
 	submit?: any,
-	view?: any
+	view?: any,
 ) {
 	let body: any = {
 		view_id: payload.view.id,

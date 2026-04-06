@@ -6,26 +6,26 @@
  * @param endUnix - Latest allowed occurrence (unix seconds, inclusive)
  */
 export function generateDates(
-  days: number[],
-  timeOfDayMinutes: number,
-  startUnix: number,
-  endUnix: number,
+	days: number[],
+	timeOfDayMinutes: number,
+	startUnix: number,
+	endUnix: number,
 ): number[] {
-  const dates: number[] = [];
-  const current = new Date(startUnix * 1000);
-  current.setUTCHours(0, 0, 0, 0);
+	const dates: number[] = [];
+	const current = new Date(startUnix * 1000);
+	current.setUTCHours(0, 0, 0, 0);
 
-  const end = new Date(endUnix * 1000);
+	const end = new Date(endUnix * 1000);
 
-  while (current <= end) {
-    if (days.includes(current.getUTCDay())) {
-      const ts = Math.floor(current.getTime() / 1000) + timeOfDayMinutes * 60;
-      if (ts >= startUnix && ts <= endUnix) {
-        dates.push(ts);
-      }
-    }
-    current.setUTCDate(current.getUTCDate() + 1);
-  }
+	while (current <= end) {
+		if (days.includes(current.getUTCDay())) {
+			const ts = Math.floor(current.getTime() / 1000) + timeOfDayMinutes * 60;
+			if (ts >= startUnix && ts <= endUnix) {
+				dates.push(ts);
+			}
+		}
+		current.setUTCDate(current.getUTCDate() + 1);
+	}
 
-  return dates;
+	return dates;
 }
