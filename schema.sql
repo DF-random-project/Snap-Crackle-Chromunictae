@@ -60,3 +60,10 @@ CREATE TABLE IF NOT EXISTS web_session (
   user_id     TEXT    NOT NULL,
   expires_at  INTEGER NOT NULL
 );
+
+-- Generic cache for Slack API responses
+CREATE TABLE IF NOT EXISTS slack_cache (
+  key        TEXT PRIMARY KEY,
+  value      TEXT    NOT NULL,
+  expires_at INTEGER NOT NULL
+);

@@ -4,6 +4,7 @@ import { Dashboard } from './pages/Dashboard'
 import { AdminPage } from './pages/Admin'
 import { MeetingsPage } from './pages/Meetings'
 import { CdtsPage } from './pages/Cdts'
+import { TeamPage } from './pages/Team'
 
 export default function App() {
   const [session, setSession] = useState<Session | null | 'loading'>('loading')
@@ -24,6 +25,7 @@ export default function App() {
   }
 
   const path = window.location.pathname
+  if (path.startsWith('/team')) return <TeamPage session={session} />
   if (path.startsWith('/cdts')) return <CdtsPage session={session} />
   if (path.startsWith('/meetings')) return <MeetingsPage session={session} />
   if (path.startsWith('/admin') && session.is_admin) return <AdminPage session={session} />

@@ -378,6 +378,44 @@ export function createWebApp(env: Env) {
     return c.json({ ok: true });
   });
 
+  api.get('/admin/slack/channels', requireAdmin(), async (c) => {
+    const now = Math.floor(Date.now() / 1000);
+    const cached = await c.env.DB.prepare(
+      'SELECT value, expires_at FROM slack_cache WHERE key = ?'
+    ).bind('channels').first<{ value: string; expires_at: number }>();
+
+    if (cached && cached.expires_at > now) {
+      return c.json(JSON.parse(cached.value));
+    }
+
+    const botClient = new SlackAPIClient(c.env.SLACK_BOT_TOKEN);
+    const allChannels: { id: string; name: string; is_private: boolean }[] = [];
+    let cursor: string | undefined;
+
+    do {
+      const result = await botClient.conversations.list({
+        types: ['public_channel', 'private_channel'],
+        limit: 200,
+        ...(cursor ? { cursor } : {}),
+      }) as { channels?: { id: string; name: string; is_private: boolean; is_archived: boolean }[]; response_metadata?: { next_cursor: string } };
+
+      for (const ch of result.channels ?? []) {
+        if (!ch.is_archived) {
+          allChannels.push({ id: ch.id, name: ch.name, is_private: ch.is_private });
+        }
+      }
+      cursor = result.response_metadata?.next_cursor || undefined;
+    } while (cursor);
+
+    allChannels.sort((a, b) => a.name.localeCompare(b.name));
+
+    await c.env.DB.prepare(
+      'INSERT INTO slack_cache (key, value, expires_at) VALUES (?, ?, ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value, expires_at = excluded.expires_at'
+    ).bind('channels', JSON.stringify(allChannels), now + 600).run();
+
+    return c.json(allChannels);
+  });
+
   api.post('/admin/users/bulk/role', requireAdmin(), async (c) => {
     const { user_ids, role } = await c.req.json<{ user_ids: string[]; role: string | null }>();
     if (!user_ids?.length) return c.json({ error: 'No user IDs provided' }, 400);

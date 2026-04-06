@@ -38,6 +38,7 @@ export function Layout({ session, children }: { session: Session; children: Reac
             <nav className="flex items-center">
               {navLink('/', 'Home')}
               {navLink('/meetings', 'Meetings')}
+              {navLink('/team', 'Team')}
               {navLink('/cdts', 'CDTs')}
               {session.is_admin && navLink('/admin', 'Admin')}
             </nav>

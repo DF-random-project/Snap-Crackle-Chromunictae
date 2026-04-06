@@ -8,6 +8,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
 import { Trash2, Pencil } from 'lucide-react'
+import { ChannelPicker } from '@/components/ChannelPicker'
 
 const slugify = (name: string) =>
   name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-cdt'
@@ -44,7 +45,7 @@ export function CdtsTab({ cdts, setCdts, users: _users }: Props) {
       await api.createCdt({
         name: newName.trim(),
         handle: newHandle.trim() || undefined,
-        channel_id: newChannelId.trim() || undefined,
+        channel_id: newChannelId || undefined,
       })
       await refreshCdts()
       setCreateOpen(false)
@@ -75,7 +76,7 @@ export function CdtsTab({ cdts, setCdts, users: _users }: Props) {
     try {
       await api.updateCdt(editDetail.id, {
         name: editName.trim() || undefined,
-        channel_id: editChannelId.trim() || undefined,
+        channel_id: editChannelId || undefined,
       })
       await refreshCdts()
       setEditOpen(false)
@@ -189,13 +190,8 @@ export function CdtsTab({ cdts, setCdts, users: _users }: Props) {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium">Slack Channel ID <span className="text-muted-foreground">(optional)</span></label>
-              <Input
-                value={newChannelId}
-                onChange={e => setNewChannelId(e.target.value)}
-                placeholder="C01234567"
-                className="h-8 text-xs"
-              />
+              <label className="text-xs font-medium">Slack Channel <span className="text-muted-foreground">(optional)</span></label>
+              <ChannelPicker value={newChannelId} onChange={setNewChannelId} />
             </div>
           </div>
           <DialogFooter>
@@ -226,13 +222,8 @@ export function CdtsTab({ cdts, setCdts, users: _users }: Props) {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium">Slack Channel ID</label>
-                <Input
-                  value={editChannelId}
-                  onChange={e => setEditChannelId(e.target.value)}
-                  placeholder="C01234567"
-                  className="h-8 text-xs"
-                />
+                <label className="text-xs font-medium">Slack Channel</label>
+                <ChannelPicker value={editChannelId} onChange={setEditChannelId} />
               </div>
 
               <div className="space-y-2">

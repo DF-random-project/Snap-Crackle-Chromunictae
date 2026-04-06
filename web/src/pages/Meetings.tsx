@@ -11,6 +11,7 @@ import { Separator } from '../components/ui/separator'
 import { Calendar } from '../components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover'
 import { CalendarIcon } from 'lucide-react'
+import { ChannelPicker } from '../components/ChannelPicker'
 import { format } from 'date-fns'
 import { cn } from '../lib/utils'
 import {
@@ -202,7 +203,7 @@ function CreateMeetingDialog({ open, onClose, onCreated }: { open: boolean; onCl
           name: name.trim(),
           description: desc.trim() || undefined,
           scheduled_at: scheduledAt,
-          channel_id: channel.trim() || undefined,
+          channel_id: channel || undefined,
           days_of_week: selectedDays,
           time_of_day_minutes: timeOfDayMinutes,
           end_date: endUnix,
@@ -213,7 +214,7 @@ function CreateMeetingDialog({ open, onClose, onCreated }: { open: boolean; onCl
           name: name.trim(),
           description: desc.trim() || undefined,
           scheduled_at: scheduledAt,
-          channel_id: channel.trim() || undefined,
+          channel_id: channel || undefined,
         })
         onCreated(created)
       }
@@ -255,9 +256,9 @@ function CreateMeetingDialog({ open, onClose, onCreated }: { open: boolean; onCl
               />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium">Slack Channel ID <span className="text-muted-foreground">(for announcement)</span></label>
-            <Input value={channel} onChange={e => setChannel(e.target.value)} placeholder="C01234567" className="h-8 text-xs" />
+          <div className="space-y-1.5 flex flex-col">
+            <label className="text-xs font-medium">Slack Channel <span className="text-muted-foreground">(for announcement)</span></label>
+            <ChannelPicker value={channel} onChange={setChannel} />
           </div>
 
           <Separator />

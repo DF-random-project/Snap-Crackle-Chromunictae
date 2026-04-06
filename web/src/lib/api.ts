@@ -176,6 +176,11 @@ export const api = {
     await apiFetch(`/api/admin/meetings/${id}`, { method: 'DELETE' })
   },
 
+  // Slack channels
+  async getSlackChannels(): Promise<{ id: string; name: string; is_private: boolean }[]> {
+    return (await apiFetch('/api/admin/slack/channels')).json()
+  },
+
   // Bulk user APIs
   async bulkSetRole(userIds: string[], role: string | null): Promise<void> {
     await apiFetch('/api/admin/users/bulk/role', {

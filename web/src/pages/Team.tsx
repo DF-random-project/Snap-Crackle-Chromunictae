@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
-import { api, type User, type Cdt, type UserMeeting } from '../../lib/api'
-import { DataTable } from '../../components/data-table'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { Select } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
+import { api, type Session, type User, type Cdt, type UserMeeting } from '../lib/api'
+import { Layout } from '../components/Layout'
+import { DataTable } from '../components/data-table'
+import { Badge } from '../components/ui/badge'
+import { Button } from '../components/ui/button'
+import { Avatar, AvatarImage, AvatarFallback } from '../components/ui/avatar'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../components/ui/sheet'
+import { Select } from '../components/ui/select'
+import { Separator } from '../components/ui/separator'
 import { type ColumnDef } from '@tanstack/react-table'
 
 const ROLES = ['student', 'mentor', 'parent', 'alumni'] as const
@@ -26,13 +27,7 @@ function formatDate(unix: number) {
   })
 }
 
-interface Props {
-  users: User[]
-  setUsers: (u: User[]) => void
-  cdts: Cdt[]
-}
-
-export function UsersTab({ users, setUsers, cdts }: Props) {
+function TeamListView({ users, cdts, isAdmin, setUsers }: { users: User[]; cdts: Cdt[]; isAdmin: boolean; setUsers?: (u: User[]) => void }) {
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [userMeetings, setUserMeetings] = useState<UserMeeting[]>([])
@@ -54,6 +49,7 @@ export function UsersTab({ users, setUsers, cdts }: Props) {
   }, [selectedUser?.user_id])
 
   const handleRoleChange = async (userId: string, role: string) => {
+    if (!setUsers) return
     const newRole = role || null
     await api.setRole(userId, newRole)
     setUsers(users.map(u => u.user_id === userId ? { ...u, role: newRole } : u))
@@ -63,6 +59,7 @@ export function UsersTab({ users, setUsers, cdts }: Props) {
   }
 
   const handleCdtChange = async (userId: string, cdtId: string) => {
+    if (!setUsers) return
     const newCdtId = cdtId || null
     await api.setUserCdt(userId, newCdtId)
     const cdt = cdts.find(c => c.id === newCdtId)
@@ -76,6 +73,7 @@ export function UsersTab({ users, setUsers, cdts }: Props) {
   }
 
   const handleSync = async () => {
+    if (!setUsers) return
     setSyncing(true)
     try {
       await api.syncUsers()
@@ -89,7 +87,7 @@ export function UsersTab({ users, setUsers, cdts }: Props) {
   }
 
   const applyBulkRole = async () => {
-    if (!selectedRows.length) return
+    if (!selectedRows.length || !setUsers) return
     setApplying('role')
     try {
       await api.bulkSetRole(selectedRows.map(u => u.user_id), bulkRole || null)
@@ -105,7 +103,7 @@ export function UsersTab({ users, setUsers, cdts }: Props) {
   }
 
   const applyBulkCdt = async () => {
-    if (!selectedRows.length) return
+    if (!selectedRows.length || !setUsers) return
     setApplying('cdt')
     try {
       await api.bulkSetCdt(selectedRows.map(u => u.user_id), bulkCdt || null)
@@ -172,19 +170,21 @@ export function UsersTab({ users, setUsers, cdts }: Props) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground">{users.length} members</span>
-        <div className="flex items-center gap-2">
-          {syncDone && (
-            <Badge variant="outline" className="text-emerald-600 border-emerald-200 bg-emerald-50">
-              Synced successfully
-            </Badge>
-          )}
-          <Button onClick={handleSync} disabled={syncing} size="sm">
-            {syncing ? 'Syncing…' : 'Sync from Slack'}
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="flex items-center gap-2">
+            {syncDone && (
+              <Badge variant="outline" className="text-emerald-600 border-emerald-200 bg-emerald-50">
+                Synced successfully
+              </Badge>
+            )}
+            <Button onClick={handleSync} disabled={syncing} size="sm">
+              {syncing ? 'Syncing…' : 'Sync from Slack'}
+            </Button>
+          </div>
+        )}
       </div>
 
-      {selectedRows.length > 0 && (
+      {isAdmin && selectedRows.length > 0 && (
         <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
           <span className="text-xs font-medium">{selectedRows.length} selected</span>
           <Separator orientation="vertical" className="h-5" />
@@ -222,8 +222,8 @@ export function UsersTab({ users, setUsers, cdts }: Props) {
         data={users}
         filterPlaceholder="Filter members…"
         onRowClick={openUser}
-        enableRowSelection
-        onSelectionChange={setSelectedRows}
+        enableRowSelection={isAdmin}
+        onSelectionChange={isAdmin ? setSelectedRows : undefined}
       />
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
@@ -248,33 +248,56 @@ export function UsersTab({ users, setUsers, cdts }: Props) {
               <div className="px-6 space-y-4">
                 <Separator />
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Role</label>
-                  <Select
-                    value={selectedUser.role ?? ''}
-                    onChange={e => handleRoleChange(selectedUser.user_id, e.target.value)}
-                    className="h-8 text-xs"
-                  >
-                    <option value="">No role</option>
-                    {ROLES.map(r => (
-                      <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
-                    ))}
-                  </Select>
-                </div>
+                {isAdmin ? (
+                  <>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">Role</label>
+                      <Select
+                        value={selectedUser.role ?? ''}
+                        onChange={e => handleRoleChange(selectedUser.user_id, e.target.value)}
+                        className="h-8 text-xs"
+                      >
+                        <option value="">No role</option>
+                        {ROLES.map(r => (
+                          <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
+                        ))}
+                      </Select>
+                    </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">CDT</label>
-                  <Select
-                    value={selectedUser.cdt_id ?? ''}
-                    onChange={e => handleCdtChange(selectedUser.user_id, e.target.value)}
-                    className="h-8 text-xs"
-                  >
-                    <option value="">No CDT</option>
-                    {cdts.map(cdt => (
-                      <option key={cdt.id} value={cdt.id}>{cdt.name}</option>
-                    ))}
-                  </Select>
-                </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-muted-foreground">CDT</label>
+                      <Select
+                        value={selectedUser.cdt_id ?? ''}
+                        onChange={e => handleCdtChange(selectedUser.user_id, e.target.value)}
+                        className="h-8 text-xs"
+                      >
+                        <option value="">No CDT</option>
+                        {cdts.map(cdt => (
+                          <option key={cdt.id} value={cdt.id}>{cdt.name}</option>
+                        ))}
+                      </Select>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">Role</label>
+                      <div>
+                        {selectedUser.role
+                          ? <Badge variant={roleVariant[selectedUser.role]}>{selectedUser.role.charAt(0).toUpperCase() + selectedUser.role.slice(1)}</Badge>
+                          : <span className="text-sm text-muted-foreground">—</span>}
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">CDT</label>
+                      <div>
+                        {selectedUser.cdt_name
+                          ? <span className="text-sm font-medium">{selectedUser.cdt_name}</span>
+                          : <span className="text-sm text-muted-foreground">—</span>}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <Separator />
 
@@ -306,5 +329,36 @@ export function UsersTab({ users, setUsers, cdts }: Props) {
         </SheetContent>
       </Sheet>
     </div>
+  )
+}
+
+export function TeamPage({ session }: { session: Session }) {
+  const [users, setUsers] = useState<User[]>([])
+  const [cdts, setCdts] = useState<Cdt[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.all([api.getUsers(), api.getCdts()]).then(([u, c]) => {
+      setUsers(u); setCdts(c); setLoading(false)
+    })
+  }, [])
+
+  if (loading) return (
+    <Layout session={session}>
+      <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">Loading…</div>
+    </Layout>
+  )
+
+  return (
+    <Layout session={session}>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-lg font-semibold tracking-tight">Team</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">All team members.</p>
+        </div>
+
+        <TeamListView users={users} setUsers={setUsers} cdts={cdts} isAdmin={session.is_admin} />
+      </div>
+    </Layout>
   )
 }
