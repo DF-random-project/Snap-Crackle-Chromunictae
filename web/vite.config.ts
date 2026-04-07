@@ -23,6 +23,9 @@ export default defineConfig({
 						if (id.includes("lucide-react")) {
 							return "vendor-icons";
 						}
+						if (id.includes("@radix-ui") || id.includes("cmdk") || id.includes("class-variance-authority")) {
+							return "vendor-radix";
+						}
 						if (
 							id.includes("date-fns") ||
 							id.includes("clsx") ||
