@@ -18,8 +18,10 @@ export default defineConfig({
 		alias: { "@": path.resolve(__dirname, "./src") },
 	},
 	server: {
+		allowedHosts: true,
 		proxy: {
 			"/api": "http://localhost:8787",
+			"/auth": "http://localhost:8787",
 		},
 	},
 });

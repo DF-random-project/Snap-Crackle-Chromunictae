@@ -1,10 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../components/ui/button";
 import { LogIn } from "lucide-react";
 import { Footer } from "../components/Footer";
 
 export function LoginPage() {
 	const [loading, setLoading] = useState(false);
+	const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+	useEffect(() => {
+		const err = new URLSearchParams(window.location.search).get("error");
+		if (err) {
+			if (err === "invalid_state") setErrorMsg("Session expired. Please try again.");
+			else if (err === "server_error") setErrorMsg("An error occurred. Please try again.");
+			else setErrorMsg(err);
+		}
+	}, []);
 
 	const handleLogin = async () => {
 		setLoading(true);
@@ -35,6 +45,12 @@ export function LoginPage() {
 						Please sign in with your Slack account to continue.
 					</p>
 				</div>
+
+				{errorMsg && (
+					<div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 font-medium text-left">
+						{errorMsg}
+					</div>
+				)}
 
 				<Button
 					size="lg"

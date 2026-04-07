@@ -7,9 +7,9 @@
 	],
 	"scripts": {
 		"deploy": "wrangler deploy",
-		"dev": "wrangler dev",
+		"dev": "concurrently \"bunx wrangler dev\" \"bun run --cwd web dev\"",
 		"dev:web": "bun run --cwd web dev",
-		"start": "wrangler dev",
+		"start": "bun run dev",
 		"test": "vitest",
 		"cf-typegen": "wrangler types",
 		"build:web": "bun run --cwd web build"
@@ -17,6 +17,7 @@
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.12.4",
 		"@types/node": "^25.5.2",
+		"concurrently": "^9.2.1",
 		"shadcn": "^4.1.2",
 		"typescript": "^5.5.2",
 		"vitest": "~3.2.0",
