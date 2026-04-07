@@ -422,7 +422,7 @@ function buildRsvpModal(
 					action_id: "note",
 					multiline: true,
 				},
-				label: { type: "plain_text", text: "Note (optional)" },
+				label: { type: "plain_text", text: "Note" },
 				optional: true,
 			},
 		],
