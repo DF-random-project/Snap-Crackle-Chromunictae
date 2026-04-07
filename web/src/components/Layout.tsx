@@ -4,8 +4,6 @@ import { Button } from "./ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { Footer } from "./Footer";
 
-const path = () => window.location.pathname;
-
 export function Layout({
 	session,
 	children,
