@@ -154,8 +154,7 @@ teamsnap.get("/sync", requireAdmin(), async (c) => {
 							(firstNameLower && uName.includes(firstNameLower)) ||
 							(lastNameLower && uName.includes(lastNameLower)) ||
 							(lastNameLower &&
-								lastWord &&
-								lastWord.startsWith(lastNameLower.substring(0, 3)))
+								lastWord?.startsWith(lastNameLower.substring(0, 3)))
 						);
 					})
 					.map((u) => ({

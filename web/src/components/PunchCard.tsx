@@ -228,7 +228,7 @@ export function PunchCard({ userId }: { userId?: string } = {}) {
 					</div>
 				</div>
 
-				<div className="flex shrink-0 flex-col justify-center gap-4 border-t pt-8 lg:w-48 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
+				<div className="flex shrink-0 flex-col justify-center gap-4 border-t pt-8 lg:w-48 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8">
 					<div className="flex flex-row justify-between gap-4 text-sm lg:flex-col">
 						<div className="space-y-1">
 							<span className="block font-medium text-muted-foreground text-xs uppercase tracking-wider">

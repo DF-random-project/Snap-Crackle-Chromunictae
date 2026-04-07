@@ -207,7 +207,7 @@ export function DataTable<TData, TValue>({
 										className={cn(
 											(onRowClick || renderSubComponent) &&
 												"cursor-pointer hover:bg-muted/50",
-											row.getIsExpanded() && "bg-muted/20 border-b-0",
+											row.getIsExpanded() && "border-b-0 bg-muted/20",
 										)}
 									>
 										{row.getVisibleCells().map((cell) => (
@@ -223,7 +223,7 @@ export function DataTable<TData, TValue>({
 										<TableRow className="bg-muted/20 hover:bg-muted/20">
 											<TableCell
 												colSpan={allColumns.length}
-												className="p-0 border-b"
+												className="border-b p-0"
 											>
 												{renderSubComponent({ row: row.original })}
 											</TableCell>

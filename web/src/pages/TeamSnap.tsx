@@ -195,13 +195,13 @@ export function TeamSnapPage({ session }: { session: Session }) {
 						</CardHeader>
 						<CardContent>
 							<div className="rounded-md border">
-								<table className="w-full text-sm text-left">
-									<thead className="bg-muted/50 border-b">
+								<table className="w-full text-left text-sm">
+									<thead className="border-b bg-muted/50">
 										<tr>
-											<th className="h-10 px-4 font-medium text-muted-foreground align-middle">
+											<th className="h-10 px-4 align-middle font-medium text-muted-foreground">
 												TeamSnap Member
 											</th>
-											<th className="h-10 px-4 font-medium text-muted-foreground align-middle">
+											<th className="h-10 px-4 align-middle font-medium text-muted-foreground">
 												SirSnap User
 											</th>
 										</tr>
@@ -217,7 +217,7 @@ export function TeamSnapPage({ session }: { session: Session }) {
 													{member.suggestedMatches &&
 														member.suggestedMatches.length > 0 && (
 															<div className="mt-2 space-y-1">
-																<p className="text-xs font-normal text-muted-foreground">
+																<p className="font-normal text-muted-foreground text-xs">
 																	Suggestions:
 																</p>
 																<div className="flex flex-wrap gap-2">
@@ -269,7 +269,7 @@ export function TeamSnapPage({ session }: { session: Session }) {
 												<td className="p-4 align-middle font-medium">
 													{member.name}
 													{member.manual && (
-														<span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+														<span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 font-medium text-blue-800 text-xs dark:bg-blue-900/30 dark:text-blue-300">
 															Manual
 														</span>
 													)}

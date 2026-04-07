@@ -225,7 +225,7 @@ export function AdminPage({ session }: { session: Session }) {
 				<div className="grid gap-6 md:grid-cols-2">
 					<Card>
 						<CardHeader>
-							<CardTitle className="text-base flex items-center justify-between">
+							<CardTitle className="flex items-center justify-between text-base">
 								<span>TeamSnap Import</span>
 								<Button variant="outline" size="sm" asChild>
 									<Link to="/teamsnap">Configure & Sync</Link>
@@ -271,14 +271,14 @@ export function AdminPage({ session }: { session: Session }) {
 							<Button
 								id="save-teamsnap-btn"
 								size="sm"
-								className="w-full mt-2"
+								className="mt-2 w-full"
 								onClick={handleSaveTeamSnapSettings}
 								disabled={savingTeamSnapSettings}
 							>
 								{savingTeamSnapSettings ? "Saving…" : "Save Credentials"}
 							</Button>
 
-							<div className="border-t pt-4 mt-4">
+							<div className="mt-4 border-t pt-4">
 								{tsStats ? (
 									<div className="space-y-1 rounded-lg border bg-muted/30 p-3 text-xs">
 										<p className="font-semibold text-sm">Last Sync</p>
@@ -318,7 +318,7 @@ export function AdminPage({ session }: { session: Session }) {
 
 					<Card>
 						<CardHeader>
-							<CardTitle className="text-base flex items-center justify-between">
+							<CardTitle className="flex items-center justify-between text-base">
 								<span>Import Meetings</span>
 							</CardTitle>
 							<CardDescription>
@@ -485,8 +485,8 @@ export function AdminPage({ session }: { session: Session }) {
 								</Button>
 							</div>
 
-							<div className="space-y-2 border-t border-red-200/50 dark:border-red-900/30 pt-4">
-								<h3 className="font-medium text-xs text-red-600 dark:text-red-500">
+							<div className="space-y-2 border-red-200/50 border-t pt-4 dark:border-red-900/30">
+								<h3 className="font-medium text-red-600 text-xs dark:text-red-500">
 									Clear Database
 								</h3>
 								<p className="mt-1 text-muted-foreground text-xs">

@@ -203,7 +203,7 @@ function CdtList({ cdts, users }: { cdts: Cdt[]; users: User[] }) {
 			)}
 			{sorted.map(({ cdt, members }, ci) => (
 				<div key={cdt.id}>
-					<div className="bg-muted/30 px-4 py-2 flex items-center justify-between">
+					<div className="flex items-center justify-between bg-muted/30 px-4 py-2">
 						<p className="font-semibold text-[11px] text-muted-foreground uppercase tracking-widest">
 							{cdt.name} · {members.length}
 						</p>
@@ -230,12 +230,12 @@ function CdtList({ cdts, users }: { cdts: Cdt[]; users: User[] }) {
 									{u.role ? (
 										<Badge
 											variant={roleVariant[u.role]}
-											className="text-[10px] w-[60px] justify-center"
+											className="w-[60px] justify-center text-[10px]"
 										>
 											{u.role.charAt(0).toUpperCase() + u.role.slice(1)}
 										</Badge>
 									) : (
-										<span className="shrink-0 text-muted-foreground text-xs w-[60px] text-center">
+										<span className="w-[60px] shrink-0 text-center text-muted-foreground text-xs">
 											—
 										</span>
 									)}
@@ -501,7 +501,7 @@ export function Dashboard({ session }: { session: Session }) {
 						</div>
 
 						{pastMeetings.length > 0 && (
-							<div className="space-y-3 flex-1">
+							<div className="flex-1 space-y-3">
 								<h2 className="font-semibold text-[13px] text-muted-foreground uppercase tracking-wider">
 									Recent Meetings
 								</h2>

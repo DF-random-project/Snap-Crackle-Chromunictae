@@ -35,10 +35,8 @@ auth.get("/callback", async (c) => {
 		const botClient = new SlackAPIClient(c.env.SLACK_BOT_TOKEN);
 		const userInfo = await botClient.users.info({ user: userId });
 		// biome-ignore lint/suspicious/noExplicitAny: Slack types are not fully mapped here
-		const is_admin =
-			(userInfo.user as any)?.is_admin || (userInfo.user as any)?.is_owner
-				? 1
-				: 0;
+		const userAny = userInfo.user as any;
+		const is_admin = userAny?.is_admin || userAny?.is_owner ? 1 : 0;
 
 		await c.env.DB.prepare(
 			`INSERT INTO slack_user (user_id, name, avatar_url, is_admin, last_synced)

@@ -1148,30 +1148,33 @@ function PastMeetingsView({ isAdmin }: { isAdmin: boolean }) {
 	const [viewAttendanceMeeting, setViewAttendanceMeeting] =
 		useState<AdminMeeting | null>(null);
 
-	const fetchMeetings = async (currentOffset: number, replace = false) => {
-		try {
-			if (!replace) setIsFetchingMore(true);
-			const data = await api.getPastMeetings(limit, currentOffset);
-			setMeetings((prev) => (replace ? data : [...prev, ...data]));
-			setHasMore(data.length === limit);
-		} catch (error) {
-			console.error("Failed to fetch past meetings", error);
-		} finally {
-			setLoading(false);
-			setIsFetchingMore(false);
-		}
-	};
+	const fetchMeetings = useCallback(
+		async (currentOffset: number, replace = false) => {
+			try {
+				if (!replace) setIsFetchingMore(true);
+				const data = await api.getPastMeetings(limit, currentOffset);
+				setMeetings((prev) => (replace ? data : [...prev, ...data]));
+				setHasMore(data.length === limit);
+			} catch (error) {
+				console.error("Failed to fetch past meetings", error);
+			} finally {
+				setLoading(false);
+				setIsFetchingMore(false);
+			}
+		},
+		[],
+	);
 
 	useEffect(() => {
 		fetchMeetings(0, true);
-	}, []);
+	}, [fetchMeetings]);
 
-	const handleLoadMore = () => {
+	const handleLoadMore = useCallback(() => {
 		if (isFetchingMore) return;
 		const newOffset = offset + limit;
 		setOffset(newOffset);
 		fetchMeetings(newOffset);
-	};
+	}, [isFetchingMore, offset, fetchMeetings]);
 
 	useEffect(() => {
 		const observer = new IntersectionObserver(
@@ -1190,7 +1193,7 @@ function PastMeetingsView({ isAdmin }: { isAdmin: boolean }) {
 		const el = document.getElementById("load-more-trigger");
 		if (el) observer.observe(el);
 		return () => observer.disconnect();
-	}, [hasMore, loading, offset, isFetchingMore]);
+	}, [hasMore, loading, isFetchingMore, handleLoadMore]);
 
 	const columns = useMemo<ColumnDef<Meeting, unknown>[]>(
 		() => [
@@ -1314,7 +1317,7 @@ function PastMeetingsView({ isAdmin }: { isAdmin: boolean }) {
 				}
 			/>
 			{hasMore && (
-				<div id="load-more-trigger" className="flex justify-center mt-4">
+				<div id="load-more-trigger" className="mt-4 flex justify-center">
 					<Button
 						variant="outline"
 						onClick={handleLoadMore}
