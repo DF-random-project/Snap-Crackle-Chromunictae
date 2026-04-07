@@ -78,6 +78,18 @@ async function apiFetch(path: string, init?: RequestInit) {
 		window.location.href = "/login";
 		throw new Error("Unauthorized");
 	}
+	if (!res.ok) {
+		const text = await res.text();
+		try {
+			const data = JSON.parse(text);
+			throw new Error(data.error || `HTTP error ${res.status}`);
+		} catch (e) {
+			if (e instanceof Error && e.message !== "Unexpected end of JSON input" && !e.message.includes("is not valid JSON")) {
+				throw e;
+			}
+			throw new Error(text || `HTTP error ${res.status}`);
+		}
+	}
 	return res;
 }
 

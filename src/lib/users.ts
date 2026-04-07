@@ -67,8 +67,15 @@ export async function setProfile(
 	await adminClient.users.profile
 		.set({ user: userId, profile })
 		.catch((err: any) => {
-			if (err?.error !== "cannot_update_admin_user") throw err;
-			console.log(`setProfile: skipped admin user ${userId}`);
+			if (err?.error === "cannot_update_admin_user") {
+				console.log(`setProfile: skipped admin user ${userId}`);
+				return;
+			}
+			if (err?.error === "user_not_found" || err?.error === "not_authed") {
+				console.log(`setProfile: skipped invalid or missing user ${userId}`);
+				return;
+			}
+			throw err;
 		});
 }
 

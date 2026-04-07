@@ -146,6 +146,69 @@ export function createWebApp(env: Env) {
 	});
 
 	// Admin API
+	api.post("/admin/users/bulk/role", requireAdmin(), async (c) => {
+		const { user_ids, role } = await c.req.json<{
+			user_ids: string[];
+			role: string | null;
+		}>();
+		if (!user_ids?.length)
+			return c.json({ error: "No user IDs provided" }, 400);
+		const validRoles = ["student", "mentor", "parent", "alumni"];
+		if (role && !validRoles.includes(role))
+			return c.json({ error: "Invalid role" }, 400);
+		
+		for (const id of user_ids) {
+			await c.env.DB.prepare(
+				"UPDATE slack_user SET role = ? WHERE user_id = ?",
+			).bind(role ?? null, id).run();
+		}
+		
+		return c.json({ ok: true });
+	});
+
+	api.post("/admin/users/bulk/cdt", requireAdmin(), async (c) => {
+		const { user_ids, cdt_id } = await c.req.json<{
+			user_ids: string[];
+			cdt_id: string | null;
+		}>();
+		if (!user_ids?.length)
+			return c.json({ error: "No user IDs provided" }, 400);
+
+		const adminClient = new SlackAPIClient(c.env.SLACK_ADMIN_TOKEN);
+
+		if (cdt_id === null) {
+			for (const id of user_ids) {
+				const currentCdt = await c.env.DB.prepare(
+					"SELECT cdt_id FROM cdt_member WHERE user_id = ?"
+				).bind(id).first<{ cdt_id: string }>();
+
+				await c.env.DB.prepare("DELETE FROM cdt_member WHERE user_id = ?").bind(id).run();
+				await clearCdtProfile(adminClient, id);
+
+				if (currentCdt) {
+					await syncCdtUsers(c.env.DB, adminClient, currentCdt.cdt_id);
+				}
+			}
+		} else {
+			for (const id of user_ids) {
+				const currentCdt = await c.env.DB.prepare(
+					"SELECT cdt_id FROM cdt_member WHERE user_id = ?"
+				).bind(id).first<{ cdt_id: string }>();
+
+				await c.env.DB.prepare(
+					`INSERT INTO cdt_member (user_id, cdt_id) VALUES (?, ?)
+           ON CONFLICT (user_id) DO UPDATE SET cdt_id = excluded.cdt_id`,
+				).bind(id, cdt_id).run();
+
+				if (currentCdt && currentCdt.cdt_id !== cdt_id) {
+					await syncCdtUsers(c.env.DB, adminClient, currentCdt.cdt_id);
+				}
+			}
+			await syncCdtUsers(c.env.DB, adminClient, cdt_id);
+		}
+		return c.json({ ok: true });
+	});
+
 	api.post("/admin/users/:userId/role", requireAdmin(), async (c) => {
 		const userId = c.req.param("userId");
 		const { role } = await c.req.json<{ role: string | null }>();
@@ -272,11 +335,20 @@ export function createWebApp(env: Env) {
 		const finalHandle = handle || slugify(name);
 
 		const adminClient = new SlackAPIClient(c.env.SLACK_ADMIN_TOKEN);
-		const result = (await adminClient.usergroups.create({
-			name,
-			handle: finalHandle,
-			...(channel_id ? { channels: channel_id } : {}),
-		})) as { usergroup?: { id: string } };
+		let result;
+		try {
+			result = (await adminClient.usergroups.create({
+				name,
+				handle: finalHandle,
+				...(channel_id ? { channels: channel_id } : {}),
+			})) as { usergroup?: { id: string } };
+		} catch (err: any) {
+			if (err?.error === "name_already_exists") {
+				return c.json({ error: "A Slack usergroup with this name or handle already exists." }, 400);
+			}
+			return c.json({ error: err?.error || "Failed to create Slack usergroup" }, 500);
+		}
+
 		const groupId = result.usergroup?.id;
 		if (!groupId)
 			return c.json({ error: "Failed to create Slack usergroup" }, 500);
@@ -771,69 +843,6 @@ export function createWebApp(env: Env) {
 			.run();
 
 		return c.json(allChannels);
-	});
-
-	api.post("/admin/users/bulk/role", requireAdmin(), async (c) => {
-		const { user_ids, role } = await c.req.json<{
-			user_ids: string[];
-			role: string | null;
-		}>();
-		if (!user_ids?.length)
-			return c.json({ error: "No user IDs provided" }, 400);
-		const validRoles = ["student", "mentor", "parent", "alumni"];
-		if (role && !validRoles.includes(role))
-			return c.json({ error: "Invalid role" }, 400);
-		
-		for (const id of user_ids) {
-			await c.env.DB.prepare(
-				"UPDATE slack_user SET role = ? WHERE user_id = ?",
-			).bind(role ?? null, id).run();
-		}
-		
-		return c.json({ ok: true });
-	});
-
-	api.post("/admin/users/bulk/cdt", requireAdmin(), async (c) => {
-		const { user_ids, cdt_id } = await c.req.json<{
-			user_ids: string[];
-			cdt_id: string | null;
-		}>();
-		if (!user_ids?.length)
-			return c.json({ error: "No user IDs provided" }, 400);
-
-		const adminClient = new SlackAPIClient(c.env.SLACK_ADMIN_TOKEN);
-
-		if (cdt_id === null) {
-			for (const id of user_ids) {
-				const currentCdt = await c.env.DB.prepare(
-					"SELECT cdt_id FROM cdt_member WHERE user_id = ?"
-				).bind(id).first<{ cdt_id: string }>();
-
-				await c.env.DB.prepare("DELETE FROM cdt_member WHERE user_id = ?").bind(id).run();
-				await clearCdtProfile(adminClient, id);
-
-				if (currentCdt) {
-					await syncCdtUsers(c.env.DB, adminClient, currentCdt.cdt_id);
-				}
-			}
-		} else {
-			for (const id of user_ids) {
-				const currentCdt = await c.env.DB.prepare(
-					"SELECT cdt_id FROM cdt_member WHERE user_id = ?"
-				).bind(id).first<{ cdt_id: string }>();
-
-				await c.env.DB.prepare(
-					`INSERT INTO cdt_member (user_id, cdt_id) VALUES (?, ?)
-           ON CONFLICT (user_id) DO UPDATE SET cdt_id = excluded.cdt_id`,
-				).bind(id, cdt_id).run();
-
-				if (currentCdt && currentCdt.cdt_id !== cdt_id) {
-					await syncCdtUsers(c.env.DB, adminClient, currentCdt.cdt_id);
-				}
-			}
-			await syncCdtUsers(c.env.DB, adminClient, cdt_id);
-		}
-		return c.json({ ok: true });
 	});
 
 	app.route("/api", api);

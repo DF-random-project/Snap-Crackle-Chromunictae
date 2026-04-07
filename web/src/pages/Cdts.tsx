@@ -151,11 +151,13 @@ function AdminCdtsView() {
 	const [newChannelId, setNewChannelId] = useState("");
 	const [newMembers, setNewMembers] = useState<User[]>([]);
 	const [creating, setCreating] = useState(false);
+	const [createError, setCreateError] = useState("");
 
 	const [editName, setEditName] = useState("");
 	const [editChannelId, setEditChannelId] = useState("");
 	const [editMembers, setEditMembers] = useState<User[]>([]);
 	const [saving, setSaving] = useState(false);
+	const [editError, setEditError] = useState("");
 
 	useEffect(() => {
 		api.getAdminCdts().then(setCdts);
@@ -166,6 +168,7 @@ function AdminCdtsView() {
 	const handleCreate = async () => {
 		if (!newName.trim()) return;
 		setCreating(true);
+		setCreateError("");
 		try {
 			const cdt = await api.createCdt({
 				name: newName.trim(),
@@ -184,6 +187,8 @@ function AdminCdtsView() {
 			setNewHandle("");
 			setNewChannelId("");
 			setNewMembers([]);
+		} catch (e: any) {
+			setCreateError(e.message || "An error occurred");
 		} finally {
 			setCreating(false);
 		}
@@ -213,6 +218,7 @@ function AdminCdtsView() {
 	const handleSaveEdit = async () => {
 		if (!editDetail) return;
 		setSaving(true);
+		setEditError("");
 		try {
 			await api.updateCdt(editDetail.id, {
 				name: editName.trim() || undefined,
@@ -222,6 +228,8 @@ function AdminCdtsView() {
 			await refreshCdts();
 			setEditOpen(false);
 			setEditDetail(null);
+		} catch (e: any) {
+			setEditError(e.message || "An error occurred while saving");
 		} finally {
 			setSaving(false);
 		}
@@ -301,12 +309,20 @@ function AdminCdtsView() {
 				</Table>
 			</div>
 
-			<Dialog open={createOpen} onOpenChange={setCreateOpen}>
+			<Dialog open={createOpen} onOpenChange={(open) => {
+				setCreateOpen(open);
+				if (!open) setCreateError("");
+			}}>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>New CDT</DialogTitle>
 					</DialogHeader>
 					<div className="space-y-3">
+						{createError && (
+							<div className="p-2 text-xs text-destructive bg-destructive/10 rounded-md">
+								{createError}
+							</div>
+						)}
 						<div className="space-y-1.5">
 							<label className="text-xs font-medium">
 								Name <span className="text-destructive">*</span>
@@ -385,7 +401,10 @@ function AdminCdtsView() {
 				open={editOpen}
 				onOpenChange={(open) => {
 					setEditOpen(open);
-					if (!open) setEditDetail(null);
+					if (!open) {
+						setEditDetail(null);
+						setEditError("");
+					}
 				}}
 			>
 				<DialogContent className="sm:max-w-md">
@@ -398,6 +417,11 @@ function AdminCdtsView() {
 						</p>
 					) : editDetail ? (
 						<div className="space-y-4">
+							{editError && (
+								<div className="p-2 text-xs text-destructive bg-destructive/10 rounded-md">
+									{editError}
+								</div>
+							)}
 							<div className="space-y-1.5">
 								<label className="text-xs font-medium">Name</label>
 								<Input
