@@ -44,20 +44,20 @@ export function buildAnnouncementBlocks(
 			elements: [
 				{
 					type: "button",
-					text: { type: "plain_text", text: "✅ Yes" },
+					text: { type: "plain_text", text: "yes" },
 					action_id: "rsvp_yes",
 					value: String(meeting.id),
 					style: "primary",
 				},
 				{
 					type: "button",
-					text: { type: "plain_text", text: "🤔 Maybe" },
+					text: { type: "plain_text", text: "maybe" },
 					action_id: "rsvp_maybe",
 					value: String(meeting.id),
 				},
 				{
 					type: "button",
-					text: { type: "plain_text", text: "❌ No" },
+					text: { type: "plain_text", text: "no" },
 					action_id: "rsvp_no",
 					value: String(meeting.id),
 					style: "danger",
