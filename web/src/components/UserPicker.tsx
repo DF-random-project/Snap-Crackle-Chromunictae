@@ -53,8 +53,10 @@ export function UserPicker({
 
 	const displayUsers =
 		selectedUsers.length > 0
-			? selectedUsers
-			: users.filter((u) => selectedIds.includes(u.user_id));
+			? [...selectedUsers].sort((a, b) => a.name.localeCompare(b.name))
+			: users
+					.filter((u) => selectedIds.includes(u.user_id))
+					.sort((a, b) => a.name.localeCompare(b.name));
 
 	const toggleUser = (user: User) => {
 		const isSelected = selectedIds.includes(user.user_id);
