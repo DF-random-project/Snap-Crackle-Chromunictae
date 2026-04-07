@@ -72,6 +72,15 @@ export type UserMeeting = {
 	note: string;
 };
 
+export interface SystemStats {
+	users: number;
+	meetings: number;
+	pastMeetings: number;
+	pendingAnnouncements: number;
+	cdts: number;
+	attendance: number;
+}
+
 async function apiFetch(path: string, init?: RequestInit) {
 	const res = await fetch(path, { credentials: "include", ...init });
 	if (res.status === 401) {
@@ -139,6 +148,9 @@ export const api = {
 		return (
 			await apiFetch("/api/admin/queue-announcements", { method: "POST" })
 		).json();
+	},
+	async getStats(): Promise<SystemStats> {
+		return (await apiFetch("/api/admin/stats")).json();
 	},
 
 	// Admin user APIs
