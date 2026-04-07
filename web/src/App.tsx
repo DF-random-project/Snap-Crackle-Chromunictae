@@ -27,7 +27,7 @@ export default function App() {
 
 	if (session === "loading") {
 		const path = window.location.pathname;
-		
+
 		let mainContent = (
 			<div className="space-y-6 animate-pulse">
 				<div className="grid grid-cols-1 md:grid-cols-[1fr_340px] gap-6">
@@ -168,8 +168,11 @@ export default function App() {
 			<Routes>
 				<Route path="/team/*" element={<TeamPage session={session} />} />
 				<Route path="/cdts/*" element={<CdtsPage session={session} />} />
-				<Route path="/meetings/*" element={<MeetingsPage session={session} />} />
-				
+				<Route
+					path="/meetings/*"
+					element={<MeetingsPage session={session} />}
+				/>
+
 				<Route path="/" element={<Dashboard session={session} />} />
 				<Route path="*" element={<Navigate to="/" replace />} />
 			</Routes>

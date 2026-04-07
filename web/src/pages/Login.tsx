@@ -10,8 +10,10 @@ export function LoginPage() {
 	useEffect(() => {
 		const err = new URLSearchParams(window.location.search).get("error");
 		if (err) {
-			if (err === "invalid_state") setErrorMsg("Session expired. Please try again.");
-			else if (err === "server_error") setErrorMsg("An error occurred. Please try again.");
+			if (err === "invalid_state")
+				setErrorMsg("Session expired. Please try again.");
+			else if (err === "server_error")
+				setErrorMsg("An error occurred. Please try again.");
 			else setErrorMsg(err);
 		}
 	}, []);
@@ -38,9 +40,13 @@ export function LoginPage() {
 
 			<div className="max-w-sm w-full bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-zinc-200/50 p-8 text-center space-y-8 z-10 relative">
 				<div className="mx-auto w-24 h-24 shadow-xl shadow-primary/10 rounded-2xl overflow-hidden border border-zinc-200/50">
-					<img src="/sir.jpeg" alt="Sirsnap Logo" className="w-full h-full object-cover" />
+					<img
+						src="/sir.jpeg"
+						alt="Sirsnap Logo"
+						className="w-full h-full object-cover"
+					/>
 				</div>
-				
+
 				<div className="space-y-3">
 					<h1 className="text-3xl font-bold tracking-tight bg-gradient-to-br from-zinc-900 to-zinc-600 bg-clip-text text-transparent">
 						Welcome to Sirsnap
@@ -72,7 +78,7 @@ export function LoginPage() {
 					)}
 				</Button>
 			</div>
-			
+
 			<div className="absolute bottom-0 left-0 w-full z-10">
 				<Footer />
 			</div>

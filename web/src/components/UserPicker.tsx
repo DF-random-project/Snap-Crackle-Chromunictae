@@ -50,10 +50,11 @@ export function UserPicker({
 			if (!aSelected && bSelected) return 1;
 			return a.name.localeCompare(b.name);
 		});
-	
-	const displayUsers = selectedUsers.length > 0 
-		? selectedUsers 
-		: users.filter(u => selectedIds.includes(u.user_id));
+
+	const displayUsers =
+		selectedUsers.length > 0
+			? selectedUsers
+			: users.filter((u) => selectedIds.includes(u.user_id));
 
 	const toggleUser = (user: User) => {
 		const isSelected = selectedIds.includes(user.user_id);
@@ -75,14 +76,22 @@ export function UserPicker({
 						<div className="flex flex-wrap items-center gap-1.5 w-full pr-8 relative">
 							<div className="flex -space-x-1.5 overflow-hidden mr-1">
 								{displayUsers.slice(0, 3).map((u) => (
-									<Avatar key={u.user_id} className="inline-block size-5 ring-1 ring-background">
+									<Avatar
+										key={u.user_id}
+										className="inline-block size-5 ring-1 ring-background"
+									>
 										<AvatarImage src={u.avatar_url} />
-										<AvatarFallback className="text-[8px]">{u.name[0]}</AvatarFallback>
+										<AvatarFallback className="text-[8px]">
+											{u.name[0]}
+										</AvatarFallback>
 									</Avatar>
 								))}
 							</div>
 							<span className="text-xs truncate max-w-[120px]">
-								{displayUsers.slice(0, 2).map((u) => u.name).join(", ")}
+								{displayUsers
+									.slice(0, 2)
+									.map((u) => u.name)
+									.join(", ")}
 							</span>
 							{displayUsers.length > 2 && (
 								<span className="text-xs text-muted-foreground whitespace-nowrap">
@@ -90,7 +99,7 @@ export function UserPicker({
 								</span>
 							)}
 							{onClear && (
-								<div 
+								<div
 									className="absolute right-0 top-1/2 -translate-y-1/2 p-1 rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
 									onClick={(e) => {
 										e.stopPropagation();
@@ -106,7 +115,11 @@ export function UserPicker({
 					)}
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="w-64 p-0 pointer-events-auto" align="start" onWheel={(e) => e.stopPropagation()}>
+			<PopoverContent
+				className="w-64 p-0 pointer-events-auto"
+				align="start"
+				onWheel={(e) => e.stopPropagation()}
+			>
 				<div className="p-1">
 					<Input
 						ref={inputRef}
@@ -129,7 +142,7 @@ export function UserPicker({
 									type="button"
 									className={cn(
 										"w-full flex items-center justify-between gap-2 px-2 py-1.5 text-xs text-left transition-colors rounded-sm",
-										isSelected ? "bg-accent/50" : "hover:bg-muted"
+										isSelected ? "bg-accent/50" : "hover:bg-muted",
 									)}
 									onClick={() => toggleUser(u)}
 								>
@@ -142,7 +155,9 @@ export function UserPicker({
 										</Avatar>
 										<span className="truncate">{u.name}</span>
 									</div>
-									{isSelected && <Check className="size-3.5 text-primary shrink-0" />}
+									{isSelected && (
+										<Check className="size-3.5 text-primary shrink-0" />
+									)}
 								</button>
 							);
 						})}

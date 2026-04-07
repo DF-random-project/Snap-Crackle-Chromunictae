@@ -203,13 +203,18 @@ function AdminCdtsView() {
 		try {
 			const detail = await api.getCdt(cdt.id);
 			setEditDetail(detail);
-			setEditMembers(detail.members.map(m => ({
-				...m,
-				role: null,
-				is_admin: false,
-				cdt_id: cdt.id,
-				cdt_name: cdt.name,
-			} as User)));
+			setEditMembers(
+				detail.members.map(
+					(m) =>
+						({
+							...m,
+							role: null,
+							is_admin: false,
+							cdt_id: cdt.id,
+							cdt_name: cdt.name,
+						}) as User,
+				),
+			);
 		} finally {
 			setEditLoading(false);
 		}
@@ -223,7 +228,7 @@ function AdminCdtsView() {
 			await api.updateCdt(editDetail.id, {
 				name: editName.trim() || undefined,
 				channel_id: editChannelId || undefined,
-				members: editMembers.map(m => m.user_id),
+				members: editMembers.map((m) => m.user_id),
 			});
 			await refreshCdts();
 			setEditOpen(false);
@@ -309,10 +314,13 @@ function AdminCdtsView() {
 				</Table>
 			</div>
 
-			<Dialog open={createOpen} onOpenChange={(open) => {
-				setCreateOpen(open);
-				if (!open) setCreateError("");
-			}}>
+			<Dialog
+				open={createOpen}
+				onOpenChange={(open) => {
+					setCreateOpen(open);
+					if (!open) setCreateError("");
+				}}
+			>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>New CDT</DialogTitle>
@@ -370,7 +378,9 @@ function AdminCdtsView() {
 									if (isSelected) {
 										setNewMembers([...newMembers, u]);
 									} else {
-										setNewMembers(newMembers.filter((m) => m.user_id !== u.user_id));
+										setNewMembers(
+											newMembers.filter((m) => m.user_id !== u.user_id),
+										);
 									}
 								}}
 								onClear={() => setNewMembers([])}
@@ -451,11 +461,17 @@ function AdminCdtsView() {
 										if (isSelected) {
 											setEditMembers([...editMembers, u]);
 										} else {
-											setEditMembers(editMembers.filter(m => m.user_id !== u.user_id));
+											setEditMembers(
+												editMembers.filter((m) => m.user_id !== u.user_id),
+											);
 										}
 									}}
 									onClear={() => setEditMembers([])}
-									filter={(u) => u.cdt_id === null || u.cdt_id === "" || editDetail.members.some(m => m.user_id === u.user_id)}
+									filter={(u) =>
+										u.cdt_id === null ||
+										u.cdt_id === "" ||
+										editDetail.members.some((m) => m.user_id === u.user_id)
+									}
 								/>
 							</div>
 						</div>

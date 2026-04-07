@@ -485,7 +485,9 @@ function MeetingAttendanceDialog({
 		<Sheet open={true} onOpenChange={(open) => !open && onClose()}>
 			<SheetContent className="overflow-y-auto">
 				<SheetHeader className="pb-0">
-					<SheetTitle className="text-base">Attendance: {meeting.name}</SheetTitle>
+					<SheetTitle className="text-base">
+						Attendance: {meeting.name}
+					</SheetTitle>
 				</SheetHeader>
 				{loading ? (
 					<div className="py-8 text-center text-sm text-muted-foreground">
@@ -501,9 +503,7 @@ function MeetingAttendanceDialog({
 								</Avatar>
 								<div className="flex-1 space-y-1">
 									<div className="flex items-center justify-between">
-										<p className="text-sm font-medium leading-none">
-											{a.name}
-										</p>
+										<p className="text-sm font-medium leading-none">{a.name}</p>
 										<div className="flex items-center text-xs">
 											{a.status === "yes" && (
 												<span className="text-emerald-600 flex items-center gap-1">
@@ -613,7 +613,8 @@ function AdminMeetingsView() {
 				accessorFn: (row) => (row.cancelled ? 0 : row.scheduled_at),
 				cell: ({ row }) => {
 					const m = row.original;
-					if (m.cancelled) return <Badge variant="destructive">Cancelled</Badge>;
+					if (m.cancelled)
+						return <Badge variant="destructive">Cancelled</Badge>;
 					if (m.scheduled_at < now)
 						return <Badge variant="secondary">Past</Badge>;
 					return <Badge variant="outline">Upcoming</Badge>;
@@ -757,7 +758,9 @@ function UpcomingMeetingsView({
 	onUpdate: (id: number, status: Meeting["my_status"], note: string) => void;
 }) {
 	const [selectedMeetings, setSelectedMeetings] = useState<Meeting[]>([]);
-	const [bulkStatus, setBulkStatus] = useState<"yes" | "maybe" | "no" | null>(null);
+	const [bulkStatus, setBulkStatus] = useState<"yes" | "maybe" | "no" | null>(
+		null,
+	);
 	const [saving, setSaving] = useState(false);
 
 	const handleBulkUpdate = async () => {
@@ -765,7 +768,7 @@ function UpcomingMeetingsView({
 		setSaving(true);
 		try {
 			await Promise.all(
-				selectedMeetings.map((m) => api.rsvp(m.id, bulkStatus, ""))
+				selectedMeetings.map((m) => api.rsvp(m.id, bulkStatus, "")),
 			);
 			for (const m of selectedMeetings) {
 				onUpdate(m.id, bulkStatus, "");
@@ -836,7 +839,11 @@ function UpcomingMeetingsView({
 						<div className="flex items-center gap-2">
 							<div className="flex gap-1">
 								{(["yes", "maybe", "no"] as const).map((s) => {
-									const labels = { yes: "Going", maybe: "Maybe", no: "Can't go" };
+									const labels = {
+										yes: "Going",
+										maybe: "Maybe",
+										no: "Can't go",
+									};
 									return (
 										<Button
 											key={s}
@@ -855,17 +862,28 @@ function UpcomingMeetingsView({
 								})}
 							</div>
 							{m.my_note && (
-								<span className="text-xs text-muted-foreground italic truncate max-w-[100px]" title={m.my_note}>
+								<span
+									className="text-xs text-muted-foreground italic truncate max-w-[100px]"
+									title={m.my_note}
+								>
 									"{m.my_note}"
 								</span>
 							)}
 							<Popover>
 								<PopoverTrigger asChild>
-									<Button variant="ghost" size="icon-sm" className="h-6 w-6" onClick={(e) => e.stopPropagation()}>
+									<Button
+										variant="ghost"
+										size="icon-sm"
+										className="h-6 w-6"
+										onClick={(e) => e.stopPropagation()}
+									>
 										<Pencil className="size-3" />
 									</Button>
 								</PopoverTrigger>
-								<PopoverContent className="w-64 p-3" onClick={(e) => e.stopPropagation()}>
+								<PopoverContent
+									className="w-64 p-3"
+									onClick={(e) => e.stopPropagation()}
+								>
 									<div className="space-y-2">
 										<h4 className="text-xs font-medium">Note for {m.name}</h4>
 										<Textarea
@@ -876,11 +894,20 @@ function UpcomingMeetingsView({
 											placeholder="Add a note..."
 										/>
 										<div className="flex justify-end">
-											<Button size="sm" onClick={async () => {
-												const val = (document.getElementById(`note-${m.id}`) as HTMLTextAreaElement).value;
-												await api.rsvp(m.id, m.my_status || "yes", val);
-												onUpdate(m.id, m.my_status || "yes", val);
-											}}>Save</Button>
+											<Button
+												size="sm"
+												onClick={async () => {
+													const val = (
+														document.getElementById(
+															`note-${m.id}`,
+														) as HTMLTextAreaElement
+													).value;
+													await api.rsvp(m.id, m.my_status || "yes", val);
+													onUpdate(m.id, m.my_status || "yes", val);
+												}}
+											>
+												Save
+											</Button>
 										</div>
 									</div>
 								</PopoverContent>
@@ -890,7 +917,7 @@ function UpcomingMeetingsView({
 				},
 			},
 		],
-		[onUpdate]
+		[onUpdate],
 	);
 
 	return (
@@ -904,7 +931,11 @@ function UpcomingMeetingsView({
 						<div className="flex items-center gap-2 flex-1 max-w-md">
 							<div className="flex gap-1 shrink-0">
 								{(["yes", "maybe", "no"] as const).map((s) => {
-									const labels = { yes: "Going", maybe: "Maybe", no: "Can't go" };
+									const labels = {
+										yes: "Going",
+										maybe: "Maybe",
+										no: "Can't go",
+									};
 									return (
 										<Button
 											key={s}
@@ -944,7 +975,8 @@ function UpcomingMeetingsView({
 function PastMeetingsView({ isAdmin }: { isAdmin: boolean }) {
 	const [meetings, setMeetings] = useState<Meeting[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [viewAttendanceMeeting, setViewAttendanceMeeting] = useState<AdminMeeting | null>(null);
+	const [viewAttendanceMeeting, setViewAttendanceMeeting] =
+		useState<AdminMeeting | null>(null);
 
 	useEffect(() => {
 		api.getPastMeetings().then((data) => {
@@ -1008,22 +1040,34 @@ function PastMeetingsView({ isAdmin }: { isAdmin: boolean }) {
 				header: "My Status & Note",
 				cell: ({ row }) => {
 					const m = row.original;
-					if (!m.my_status) return <span className="text-muted-foreground text-xs italic">Did not RSVP</span>;
-					
+					if (!m.my_status)
+						return (
+							<span className="text-muted-foreground text-xs italic">
+								Did not RSVP
+							</span>
+						);
+
 					const labels = { yes: "Going", maybe: "Maybe", no: "Can't go" };
-					const colors = { 
-						yes: "text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-900/50", 
-						maybe: "text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/50", 
-						no: "text-red-600 bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-900/50" 
+					const colors = {
+						yes: "text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-900/50",
+						maybe:
+							"text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/50",
+						no: "text-red-600 bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-900/50",
 					};
-					
+
 					return (
 						<div className="flex items-center gap-2">
-							<Badge variant="outline" className={`text-[10px] px-1.5 py-0 font-medium ${colors[m.my_status]}`}>
+							<Badge
+								variant="outline"
+								className={`text-[10px] px-1.5 py-0 font-medium ${colors[m.my_status]}`}
+							>
 								{labels[m.my_status]}
 							</Badge>
 							{m.my_note && (
-								<span className="text-xs text-muted-foreground italic truncate max-w-[150px]" title={m.my_note}>
+								<span
+									className="text-xs text-muted-foreground italic truncate max-w-[150px]"
+									title={m.my_note}
+								>
 									"{m.my_note}"
 								</span>
 							)}
@@ -1032,15 +1076,21 @@ function PastMeetingsView({ isAdmin }: { isAdmin: boolean }) {
 				},
 			},
 		],
-		[]
+		[],
 	);
 
 	if (loading) {
-		return <div className="text-sm text-muted-foreground py-8 text-center">Loading past meetings...</div>;
+		return (
+			<div className="text-sm text-muted-foreground py-8 text-center">
+				Loading past meetings...
+			</div>
+		);
 	}
 
 	if (meetings.length === 0) {
-		return <p className="text-sm text-muted-foreground py-4">No past meetings.</p>;
+		return (
+			<p className="text-sm text-muted-foreground py-4">No past meetings.</p>
+		);
 	}
 
 	return (
@@ -1049,7 +1099,11 @@ function PastMeetingsView({ isAdmin }: { isAdmin: boolean }) {
 				columns={columns}
 				data={meetings}
 				filterPlaceholder="Filter past meetings…"
-				onRowClick={isAdmin ? (m) => setViewAttendanceMeeting(m as unknown as AdminMeeting) : undefined}
+				onRowClick={
+					isAdmin
+						? (m) => setViewAttendanceMeeting(m as unknown as AdminMeeting)
+						: undefined
+				}
 			/>
 			{viewAttendanceMeeting && (
 				<MeetingAttendanceDialog
@@ -1079,27 +1133,39 @@ export function MeetingsPage({ session }: { session: Session }) {
 		});
 	}, [session.is_admin]);
 
-	const updateRsvp = (id: number, status: Meeting["my_status"], note: string) => {
+	const updateRsvp = (
+		id: number,
+		status: Meeting["my_status"],
+		note: string,
+	) => {
 		const updateList = (list: Meeting[]) => {
 			return list.map((m) => {
 				if (m.id === id) {
 					// We use m.my_status as the prevStatus to avoid stale closures
 					const prevStatus = m.my_status;
-					
+
 					// Optimistically update counts
 					let yes_count = m.yes_count;
 					let maybe_count = m.maybe_count;
 					let no_count = m.no_count;
 
 					if (prevStatus === "yes") yes_count = Math.max(0, yes_count - 1);
-					if (prevStatus === "maybe") maybe_count = Math.max(0, maybe_count - 1);
+					if (prevStatus === "maybe")
+						maybe_count = Math.max(0, maybe_count - 1);
 					if (prevStatus === "no") no_count = Math.max(0, no_count - 1);
 
 					if (status === "yes") yes_count += 1;
 					if (status === "maybe") maybe_count += 1;
 					if (status === "no") no_count += 1;
 
-					return { ...m, my_status: status, my_note: note, yes_count, maybe_count, no_count };
+					return {
+						...m,
+						my_status: status,
+						my_note: note,
+						yes_count,
+						maybe_count,
+						no_count,
+					};
 				}
 				return m;
 			});
@@ -1162,9 +1228,7 @@ export function MeetingsPage({ session }: { session: Session }) {
 		<div className="space-y-8">
 			<div>
 				{upcoming.length === 0 ? (
-					<p className="text-sm text-muted-foreground">
-						No upcoming meetings.
-					</p>
+					<p className="text-sm text-muted-foreground">No upcoming meetings.</p>
 				) : (
 					<UpcomingMeetingsView meetings={upcoming} onUpdate={updateRsvp} />
 				)}
@@ -1186,7 +1250,9 @@ export function MeetingsPage({ session }: { session: Session }) {
 					<TabsList>
 						<TabsTrigger value="upcoming">Upcoming</TabsTrigger>
 						<TabsTrigger value="past">Past</TabsTrigger>
-						{session.is_admin && <TabsTrigger value="manage">Manage</TabsTrigger>}
+						{session.is_admin && (
+							<TabsTrigger value="manage">Manage</TabsTrigger>
+						)}
 					</TabsList>
 					<TabsContent value="upcoming" className="mt-4">
 						{renderMeetingsList()}

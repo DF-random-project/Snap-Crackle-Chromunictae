@@ -101,7 +101,9 @@ function FeaturedMeeting({
 								{meeting.maybe_count || 0} maybe
 							</span>
 							<span className="mx-1.5">·</span>
-							<span className="text-red-600">{meeting.no_count || 0} can't go</span>
+							<span className="text-red-600">
+								{meeting.no_count || 0} can't go
+							</span>
 						</p>
 						{meeting.description && (
 							<p className="text-sm text-muted-foreground mt-2 leading-relaxed">
@@ -373,7 +375,7 @@ export function Dashboard({ session }: { session: Session }) {
 
 	const now = Math.floor(Date.now() / 1000);
 	const thirtyDaysFromNow = now + 30 * 24 * 60 * 60;
-	
+
 	const upcoming = meetings
 		.filter((m) => {
 			const time = m.end_time || m.scheduled_at;
@@ -384,7 +386,11 @@ export function Dashboard({ session }: { session: Session }) {
 	const featured = upcoming[0];
 	const rest = upcoming.slice(1);
 
-	const updateRsvp = (id: number, status: Meeting["my_status"], note: string) => {
+	const updateRsvp = (
+		id: number,
+		status: Meeting["my_status"],
+		note: string,
+	) => {
 		setMeetings((ms) =>
 			ms.map((m) => {
 				if (m.id === id) {
@@ -396,14 +402,22 @@ export function Dashboard({ session }: { session: Session }) {
 					let no_count = m.no_count;
 
 					if (prevStatus === "yes") yes_count = Math.max(0, yes_count - 1);
-					if (prevStatus === "maybe") maybe_count = Math.max(0, maybe_count - 1);
+					if (prevStatus === "maybe")
+						maybe_count = Math.max(0, maybe_count - 1);
 					if (prevStatus === "no") no_count = Math.max(0, no_count - 1);
 
 					if (status === "yes") yes_count += 1;
 					if (status === "maybe") maybe_count += 1;
 					if (status === "no") no_count += 1;
 
-					return { ...m, my_status: status, my_note: note, yes_count, maybe_count, no_count };
+					return {
+						...m,
+						my_status: status,
+						my_note: note,
+						yes_count,
+						maybe_count,
+						no_count,
+					};
 				}
 				return m;
 			}),
@@ -441,9 +455,18 @@ export function Dashboard({ session }: { session: Session }) {
 						<h2 className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">
 							My CDT
 						</h2>
-						<CdtList 
-							cdts={cdts.filter(c => users.find(u => u.user_id === session.user_id)?.cdt_id === c.id)} 
-							users={users.filter(u => u.cdt_id === users.find(user => user.user_id === session.user_id)?.cdt_id)} 
+						<CdtList
+							cdts={cdts.filter(
+								(c) =>
+									users.find((u) => u.user_id === session.user_id)?.cdt_id ===
+									c.id,
+							)}
+							users={users.filter(
+								(u) =>
+									u.cdt_id ===
+									users.find((user) => user.user_id === session.user_id)
+										?.cdt_id,
+							)}
 						/>
 					</div>
 				</div>

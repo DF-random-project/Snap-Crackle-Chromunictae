@@ -83,7 +83,11 @@ async function apiFetch(path: string, init?: RequestInit) {
 			const data = JSON.parse(text);
 			throw new Error(data.error || `HTTP error ${res.status}`);
 		} catch (e) {
-			if (e instanceof Error && e.message !== "Unexpected end of JSON input" && !e.message.includes("is not valid JSON")) {
+			if (
+				e instanceof Error &&
+				e.message !== "Unexpected end of JSON input" &&
+				!e.message.includes("is not valid JSON")
+			) {
 				throw e;
 			}
 			throw new Error(text || `HTTP error ${res.status}`);

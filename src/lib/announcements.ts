@@ -206,7 +206,7 @@ export async function flushPendingAnnouncements(env: Env) {
 		 FROM pending_announcement p
 		 JOIN meeting m ON m.id = p.meeting_id
 		 ORDER BY p.queued_at ASC
-		 LIMIT 50`
+		 LIMIT 50`,
 	).all<{
 		id: number;
 		name: string;
@@ -230,8 +230,11 @@ export async function flushPendingAnnouncements(env: Env) {
 			}
 			processedIds.push(meeting.id);
 		} catch (err) {
-			console.error(`Failed to update announcement for meeting ${meeting.id}:`, err);
-			// Still mark as processed so it doesn't block the queue forever, 
+			console.error(
+				`Failed to update announcement for meeting ${meeting.id}:`,
+				err,
+			);
+			// Still mark as processed so it doesn't block the queue forever,
 			// it will just be retried next time someone RSVPs.
 			processedIds.push(meeting.id);
 		}
@@ -239,7 +242,9 @@ export async function flushPendingAnnouncements(env: Env) {
 
 	if (processedIds.length > 0) {
 		const placeholders = processedIds.map(() => "?").join(",");
-		await env.DB.prepare(`DELETE FROM pending_announcement WHERE meeting_id IN (${placeholders})`)
+		await env.DB.prepare(
+			`DELETE FROM pending_announcement WHERE meeting_id IN (${placeholders})`,
+		)
 			.bind(...processedIds)
 			.run();
 	}

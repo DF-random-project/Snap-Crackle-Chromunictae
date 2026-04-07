@@ -12,24 +12,26 @@ export async function syncCdtUsers(
 		.prepare("SELECT name FROM cdt WHERE id = ?")
 		.bind(cdtId)
 		.first<{ name: string }>();
-	
+
 	if (!cdtRow) return;
 
 	const members = await db
 		.prepare("SELECT user_id FROM cdt_member WHERE cdt_id = ?")
 		.bind(cdtId)
 		.all<{ user_id: string }>();
-	
+
 	const memberIds = members.results.map((r) => r.user_id);
 
-	await adminClient.usergroups.users.update({
-		usergroup: cdtId,
-		users: memberIds.length > 0 ? memberIds.join(",") : " ",
-	}).catch((err: any) => {
-		if (err?.error !== "invalid_arguments" && err?.error !== "not_found") {
-			console.error(`Failed to update usergroup users for ${cdtId}:`, err);
-		}
-	});
+	await adminClient.usergroups.users
+		.update({
+			usergroup: cdtId,
+			users: memberIds.length > 0 ? memberIds.join(",") : " ",
+		})
+		.catch((err: any) => {
+			if (err?.error !== "invalid_arguments" && err?.error !== "not_found") {
+				console.error(`Failed to update usergroup users for ${cdtId}:`, err);
+			}
+		});
 
 	for (const userId of memberIds) {
 		await setProfile(adminClient, userId, { [CDT_FIELD_ID]: cdtRow.name });

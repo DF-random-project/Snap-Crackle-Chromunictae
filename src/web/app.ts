@@ -12,7 +12,12 @@ import {
 	buildAnnouncementBlocks,
 } from "../lib/announcements";
 import { SlackAPIClient } from "slack-web-api-client";
-import { syncCdtUsers, clearCdtProfile, sendWelcomeMessage, deleteSlackUsergroup } from "../lib/slack-cdt";
+import {
+	syncCdtUsers,
+	clearCdtProfile,
+	sendWelcomeMessage,
+	deleteSlackUsergroup,
+} from "../lib/slack-cdt";
 import authRoutes from "./routes/auth";
 
 type Variables = { session: Session | null };
@@ -62,7 +67,7 @@ export function createWebApp(env: Env) {
 			cdt_id: string | null;
 			cdt_name: string | null;
 		}>();
-		
+
 		c.header("Cache-Control", "no-store, max-age=0");
 		return c.json(
 			rows.results.map((r) => ({
@@ -96,19 +101,21 @@ export function createWebApp(env: Env) {
        FROM meeting m
        LEFT JOIN attendance a ON a.meeting_id = m.id AND a.user_id = ?
        WHERE (m.scheduled_at > ? OR (m.end_time IS NOT NULL AND m.end_time > ?)) AND m.cancelled = 0
-       ORDER BY m.scheduled_at`
+       ORDER BY m.scheduled_at`,
 		)
 			.bind(session.user_id, now, now)
 			.all();
-		
+
 		// The SQLite query returns yes_count/maybe_count/no_count as BigInts or numbers.
 		// If they come back null due to an empty DB row, default to 0.
-		return c.json(rows.results.map((r: any) => ({
-			...r,
-			yes_count: Number(r.yes_count || 0),
-			maybe_count: Number(r.maybe_count || 0),
-			no_count: Number(r.no_count || 0)
-		})));
+		return c.json(
+			rows.results.map((r: any) => ({
+				...r,
+				yes_count: Number(r.yes_count || 0),
+				maybe_count: Number(r.maybe_count || 0),
+				no_count: Number(r.no_count || 0),
+			})),
+		);
 	});
 
 	api.get("/meetings/past", requireSession(), async (c) => {
@@ -126,13 +133,15 @@ export function createWebApp(env: Env) {
 		)
 			.bind(session.user_id, now, now)
 			.all();
-		
-		return c.json(rows.results.map((r: any) => ({
-			...r,
-			yes_count: Number(r.yes_count || 0),
-			maybe_count: Number(r.maybe_count || 0),
-			no_count: Number(r.no_count || 0)
-		})));
+
+		return c.json(
+			rows.results.map((r: any) => ({
+				...r,
+				yes_count: Number(r.yes_count || 0),
+				maybe_count: Number(r.maybe_count || 0),
+				no_count: Number(r.no_count || 0),
+			})),
+		);
 	});
 
 	api.post("/rsvp/:meetingId", requireSession(), async (c) => {
@@ -146,7 +155,7 @@ export function createWebApp(env: Env) {
 			return c.json({ error: "Invalid status" }, 400);
 
 		const now = Math.floor(Date.now() / 1000);
-		
+
 		await c.env.DB.batch([
 			c.env.DB.prepare(
 				`INSERT INTO attendance (meeting_id, user_id, status, note)
@@ -155,8 +164,8 @@ export function createWebApp(env: Env) {
 			).bind(meetingId, session.user_id, status, note),
 			c.env.DB.prepare(
 				`INSERT INTO pending_announcement (meeting_id, queued_at) VALUES (?, ?)
-				 ON CONFLICT (meeting_id) DO UPDATE SET queued_at = excluded.queued_at`
-			).bind(meetingId, now)
+				 ON CONFLICT (meeting_id) DO UPDATE SET queued_at = excluded.queued_at`,
+			).bind(meetingId, now),
 		]);
 
 		return c.json({ ok: true });
@@ -173,13 +182,13 @@ export function createWebApp(env: Env) {
 		const validRoles = ["student", "mentor", "parent", "alumni"];
 		if (role && !validRoles.includes(role))
 			return c.json({ error: "Invalid role" }, 400);
-		
+
 		for (const id of user_ids) {
-			await c.env.DB.prepare(
-				"UPDATE slack_user SET role = ? WHERE user_id = ?",
-			).bind(role ?? null, id).run();
+			await c.env.DB.prepare("UPDATE slack_user SET role = ? WHERE user_id = ?")
+				.bind(role ?? null, id)
+				.run();
 		}
-		
+
 		return c.json({ ok: true });
 	});
 
@@ -196,10 +205,14 @@ export function createWebApp(env: Env) {
 		if (cdt_id === null) {
 			for (const id of user_ids) {
 				const currentCdt = await c.env.DB.prepare(
-					"SELECT cdt_id FROM cdt_member WHERE user_id = ?"
-				).bind(id).first<{ cdt_id: string }>();
+					"SELECT cdt_id FROM cdt_member WHERE user_id = ?",
+				)
+					.bind(id)
+					.first<{ cdt_id: string }>();
 
-				await c.env.DB.prepare("DELETE FROM cdt_member WHERE user_id = ?").bind(id).run();
+				await c.env.DB.prepare("DELETE FROM cdt_member WHERE user_id = ?")
+					.bind(id)
+					.run();
 				await clearCdtProfile(adminClient, id);
 
 				if (currentCdt) {
@@ -209,13 +222,17 @@ export function createWebApp(env: Env) {
 		} else {
 			for (const id of user_ids) {
 				const currentCdt = await c.env.DB.prepare(
-					"SELECT cdt_id FROM cdt_member WHERE user_id = ?"
-				).bind(id).first<{ cdt_id: string }>();
+					"SELECT cdt_id FROM cdt_member WHERE user_id = ?",
+				)
+					.bind(id)
+					.first<{ cdt_id: string }>();
 
 				await c.env.DB.prepare(
 					`INSERT INTO cdt_member (user_id, cdt_id) VALUES (?, ?)
            ON CONFLICT (user_id) DO UPDATE SET cdt_id = excluded.cdt_id`,
-				).bind(id, cdt_id).run();
+				)
+					.bind(id, cdt_id)
+					.run();
 
 				if (currentCdt && currentCdt.cdt_id !== cdt_id) {
 					await syncCdtUsers(c.env.DB, adminClient, currentCdt.cdt_id);
@@ -262,11 +279,13 @@ export function createWebApp(env: Env) {
 	api.post("/admin/users/:userId/cdt", requireAdmin(), async (c) => {
 		const userId = c.req.param("userId");
 		const { cdt_id } = await c.req.json<{ cdt_id: string | null }>();
-		
+
 		const adminClient = new SlackAPIClient(c.env.SLACK_ADMIN_TOKEN);
 		const currentCdt = await c.env.DB.prepare(
-			"SELECT cdt_id FROM cdt_member WHERE user_id = ?"
-		).bind(userId).first<{ cdt_id: string }>();
+			"SELECT cdt_id FROM cdt_member WHERE user_id = ?",
+		)
+			.bind(userId)
+			.first<{ cdt_id: string }>();
 
 		if (cdt_id === null) {
 			await c.env.DB.prepare("DELETE FROM cdt_member WHERE user_id = ?")
@@ -361,9 +380,17 @@ export function createWebApp(env: Env) {
 			})) as { usergroup?: { id: string } };
 		} catch (err: any) {
 			if (err?.error === "name_already_exists") {
-				return c.json({ error: "A Slack usergroup with this name or handle already exists." }, 400);
+				return c.json(
+					{
+						error: "A Slack usergroup with this name or handle already exists.",
+					},
+					400,
+				);
 			}
-			return c.json({ error: err?.error || "Failed to create Slack usergroup" }, 500);
+			return c.json(
+				{ error: err?.error || "Failed to create Slack usergroup" },
+				500,
+			);
 		}
 
 		const groupId = result.usergroup?.id;
@@ -398,10 +425,14 @@ export function createWebApp(env: Env) {
 
 	api.put("/admin/cdts/:id", requireAdmin(), async (c) => {
 		const id = c.req.param("id");
-		const body = await c.req.json<{ name?: string; channel_id?: string; members?: string[] }>();
+		const body = await c.req.json<{
+			name?: string;
+			channel_id?: string;
+			members?: string[];
+		}>();
 		const fields: string[] = [];
 		const values: (string | null)[] = [];
-		
+
 		if (body.name !== undefined) {
 			fields.push("name = ?");
 			values.push(body.name);
@@ -420,10 +451,12 @@ export function createWebApp(env: Env) {
 
 		if (body.members !== undefined) {
 			const adminClient = new SlackAPIClient(c.env.SLACK_ADMIN_TOKEN);
-			
+
 			const currentRows = await c.env.DB.prepare(
-				"SELECT user_id FROM cdt_member WHERE cdt_id = ?"
-			).bind(id).all<{ user_id: string }>();
+				"SELECT user_id FROM cdt_member WHERE cdt_id = ?",
+			)
+				.bind(id)
+				.all<{ user_id: string }>();
 			const currentSet = new Set(currentRows.results.map((r) => r.user_id));
 			const newSet = new Set(body.members);
 
@@ -431,19 +464,27 @@ export function createWebApp(env: Env) {
 			const removed = [...currentSet].filter((uid) => !newSet.has(uid));
 
 			for (const userId of removed) {
-				await c.env.DB.prepare("DELETE FROM cdt_member WHERE user_id = ? AND cdt_id = ?").bind(userId, id).run();
+				await c.env.DB.prepare(
+					"DELETE FROM cdt_member WHERE user_id = ? AND cdt_id = ?",
+				)
+					.bind(userId, id)
+					.run();
 				await clearCdtProfile(adminClient, userId);
 			}
 
 			for (const userId of added) {
 				const currentCdt = await c.env.DB.prepare(
-					"SELECT cdt_id FROM cdt_member WHERE user_id = ?"
-				).bind(userId).first<{ cdt_id: string }>();
+					"SELECT cdt_id FROM cdt_member WHERE user_id = ?",
+				)
+					.bind(userId)
+					.first<{ cdt_id: string }>();
 
 				await c.env.DB.prepare(
 					`INSERT INTO cdt_member (user_id, cdt_id) VALUES (?, ?)
            ON CONFLICT (user_id) DO UPDATE SET cdt_id = excluded.cdt_id`,
-				).bind(userId, id).run();
+				)
+					.bind(userId, id)
+					.run();
 
 				if (currentCdt && currentCdt.cdt_id !== id) {
 					await syncCdtUsers(c.env.DB, adminClient, currentCdt.cdt_id);
@@ -461,20 +502,26 @@ export function createWebApp(env: Env) {
 	api.delete("/admin/cdts/:id", requireAdmin(), async (c) => {
 		const id = c.req.param("id");
 		const cdtRow = await c.env.DB.prepare(
-			"SELECT id, name, handle FROM cdt WHERE id = ?"
-		).bind(id).first<{ id: string; name: string; handle: string }>();
+			"SELECT id, name, handle FROM cdt WHERE id = ?",
+		)
+			.bind(id)
+			.first<{ id: string; name: string; handle: string }>();
 
 		if (!cdtRow) return c.json({ error: "Not found" }, 404);
 
 		const members = await c.env.DB.prepare(
-			"SELECT user_id FROM cdt_member WHERE cdt_id = ?"
-		).bind(id).all<{ user_id: string }>();
+			"SELECT user_id FROM cdt_member WHERE cdt_id = ?",
+		)
+			.bind(id)
+			.all<{ user_id: string }>();
 
 		const adminClient = new SlackAPIClient(c.env.SLACK_ADMIN_TOKEN);
 
 		await Promise.all([
 			deleteSlackUsergroup(adminClient, id, cdtRow.name, cdtRow.handle),
-			...members.results.map(({ user_id }) => clearCdtProfile(adminClient, user_id)),
+			...members.results.map(({ user_id }) =>
+				clearCdtProfile(adminClient, user_id),
+			),
 		]);
 
 		await c.env.DB.prepare("DELETE FROM cdt WHERE id = ?").bind(id).run();

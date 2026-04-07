@@ -37,7 +37,11 @@ export function Layout({
 				<div className="max-w-5xl mx-auto px-5 h-[52px] flex items-center justify-between">
 					<div className="flex items-center gap-5">
 						<Link to="/" className="flex items-center gap-2 shrink-0">
-							<img src="/favicon-32x32.png" alt="Sirsnap Logo" className="w-6 h-6 rounded-md object-contain" />
+							<img
+								src="/favicon-32x32.png"
+								alt="Sirsnap Logo"
+								className="w-6 h-6 rounded-md object-contain"
+							/>
 							<span className="font-semibold text-[13px] tracking-tight">
 								Sirsnap
 							</span>

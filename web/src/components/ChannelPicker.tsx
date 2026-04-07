@@ -82,7 +82,11 @@ export function ChannelPicker({
 					)}
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="w-64 p-0 pointer-events-auto" align="start" onWheel={(e) => e.stopPropagation()}>
+			<PopoverContent
+				className="w-64 p-0 pointer-events-auto"
+				align="start"
+				onWheel={(e) => e.stopPropagation()}
+			>
 				<div className="p-1">
 					<Input
 						ref={inputRef}
