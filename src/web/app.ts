@@ -300,7 +300,8 @@ export function createWebApp(env: Env) {
 			}>();
 
 		if (channel_id && groupId) {
-			await sendWelcomeMessage(adminClient, groupId, channel_id, name);
+			const botClient = new SlackAPIClient(c.env.SLACK_BOT_TOKEN);
+			await sendWelcomeMessage(botClient, groupId, channel_id, name);
 		}
 
 		return c.json(cdt, 201);

@@ -44,20 +44,20 @@ export async function clearCdtProfile(
 }
 
 export async function sendWelcomeMessage(
-	adminClient: SlackAPIClient,
+	botClient: SlackAPIClient,
 	cdtId: string,
 	channelId: string,
 	name: string,
 ) {
-	await adminClient.chat
+	await botClient.chat
 		.postMessage({
 			channel: channelId,
 			text: `<!subteam^${cdtId}> has been created. Welcome to *${name}*!`,
 		})
 		.catch(async (err: any) => {
 			if (err?.error !== "not_in_channel") throw err;
-			await adminClient.conversations.join({ channel: channelId });
-			await adminClient.chat.postMessage({
+			await botClient.conversations.join({ channel: channelId });
+			await botClient.chat.postMessage({
 				channel: channelId,
 				text: `<!subteam^${cdtId}> has been created. Welcome to *${name}*!`,
 			});
