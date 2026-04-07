@@ -27,7 +27,7 @@ export function createWebApp(env: Env) {
 	const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 	// Server-side auth (must stay here — sets httpOnly cookies)
-	app.route("/", authRoutes);
+	app.route("/api/auth", authRoutes);
 
 	// JSON API
 	const api = new Hono<{ Bindings: Env; Variables: Variables }>();

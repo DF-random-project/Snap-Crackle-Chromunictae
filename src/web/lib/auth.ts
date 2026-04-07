@@ -13,7 +13,7 @@ export function buildOAuthUrl(env: Env, state: string): string {
 }
 
 function getRedirectUri(env: Env): string {
-	return `${env.HOST}/oauth/callback`;
+	return `${env.HOST}/api/auth/callback`;
 }
 
 export async function exchangeCode(

@@ -75,7 +75,7 @@ export type UserMeeting = {
 async function apiFetch(path: string, init?: RequestInit) {
 	const res = await fetch(path, { credentials: "include", ...init });
 	if (res.status === 401) {
-		window.location.href = "/login";
+		window.location.href = "/api/auth/login";
 		throw new Error("Unauthorized");
 	}
 	if (!res.ok) {

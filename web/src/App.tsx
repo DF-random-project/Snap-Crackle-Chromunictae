@@ -24,7 +24,7 @@ export default function App() {
 		);
 
 	if (!session) {
-		window.location.href = "/login";
+		window.location.href = "/api/auth/login";
 		return null;
 	}
 

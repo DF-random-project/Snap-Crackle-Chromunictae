@@ -36,7 +36,7 @@ export const sessionMiddleware = createMiddleware<{
 export function requireSession() {
 	return createMiddleware<{ Bindings: Env; Variables: Variables }>(
 		async (c, next) => {
-			if (!c.get("session")) return c.redirect("/login");
+			if (!c.get("session")) return c.redirect("/api/auth/login");
 			await next();
 		},
 	);
@@ -46,7 +46,7 @@ export function requireAdmin() {
 	return createMiddleware<{ Bindings: Env; Variables: Variables }>(
 		async (c, next) => {
 			const session = c.get("session");
-			if (!session) return c.redirect("/login");
+			if (!session) return c.redirect("/api/auth/login");
 			if (!session.is_admin) return c.text("Forbidden", 403);
 			await next();
 		},
