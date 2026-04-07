@@ -26,11 +26,12 @@ const slugify = (name: string) =>
 export function createWebApp(env: Env) {
 	const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
-	// Server-side auth (must stay here — sets httpOnly cookies)
-	app.route("/api/auth", authRoutes);
-
 	// JSON API
 	const api = new Hono<{ Bindings: Env; Variables: Variables }>();
+
+	// Server-side auth (must stay here — sets httpOnly cookies)
+	api.route("/auth", authRoutes);
+
 	api.use("*", sessionMiddleware);
 
 	api.get("/me", requireSession(), (c) => {
