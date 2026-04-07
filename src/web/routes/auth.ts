@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
+import { SlackAPIClient } from "slack-web-api-client";
 import type { Env } from "../../index";
 import { buildOAuthUrl, exchangeCode } from "../lib/auth";
 
@@ -30,15 +31,25 @@ auth.get("/callback", async (c) => {
 		const { userId, name, avatarUrl } = await exchangeCode(c.env, code);
 		const now = Math.floor(Date.now() / 1000);
 
+		// Check if user is an admin by querying Slack API with bot token
+		const botClient = new SlackAPIClient(c.env.SLACK_BOT_TOKEN);
+		const userInfo = await botClient.users.info({ user: userId });
+		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		const is_admin =
+			(userInfo.user as any)?.is_admin || (userInfo.user as any)?.is_owner
+				? 1
+				: 0;
+
 		await c.env.DB.prepare(
-			`INSERT INTO slack_user (user_id, name, avatar_url, last_synced)
-       VALUES (?, ?, ?, ?)
+			`INSERT INTO slack_user (user_id, name, avatar_url, is_admin, last_synced)
+       VALUES (?, ?, ?, ?, ?)
        ON CONFLICT (user_id) DO UPDATE SET
          name = excluded.name,
          avatar_url = excluded.avatar_url,
+         is_admin = excluded.is_admin,
          last_synced = excluded.last_synced`,
 		)
-			.bind(userId, name, avatarUrl, now)
+			.bind(userId, name, avatarUrl, is_admin, now)
 			.run();
 
 		const sessionId =

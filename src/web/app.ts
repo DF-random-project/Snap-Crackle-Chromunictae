@@ -1329,17 +1329,37 @@ export function createWebApp(_env: Env) {
 	});
 
 	api.post("/admin/clear-db", requireAdmin(), async (c) => {
-		// Only clear specific tables, preserving settings and sessions
-		await c.env.DB.batch([
-			c.env.DB.prepare("DELETE FROM attendance"),
-			c.env.DB.prepare("DELETE FROM pending_announcement"),
-			c.env.DB.prepare("DELETE FROM meeting"),
-			c.env.DB.prepare("DELETE FROM meeting_series"),
-			c.env.DB.prepare("DELETE FROM cdt_member"),
-			c.env.DB.prepare("DELETE FROM cdt"),
-			c.env.DB.prepare("DELETE FROM slack_user"),
-			c.env.DB.prepare("DELETE FROM slack_cache"),
-		]);
+		// Get the current user ID to preserve their admin status
+		const session = c.get("session");
+		const currentUserId = session?.user_id;
+
+		// Clear tables, preserving settings, sessions, and the current admin's user record
+		if (currentUserId) {
+			await c.env.DB.batch([
+				c.env.DB.prepare("DELETE FROM attendance"),
+				c.env.DB.prepare("DELETE FROM pending_announcement"),
+				c.env.DB.prepare("DELETE FROM meeting"),
+				c.env.DB.prepare("DELETE FROM meeting_series"),
+				c.env.DB.prepare("DELETE FROM cdt_member"),
+				c.env.DB.prepare("DELETE FROM cdt"),
+				c.env.DB.prepare("DELETE FROM slack_cache"),
+				c.env.DB.prepare("DELETE FROM slack_user WHERE user_id != ?").bind(
+					currentUserId,
+				),
+			]);
+		} else {
+			await c.env.DB.batch([
+				c.env.DB.prepare("DELETE FROM attendance"),
+				c.env.DB.prepare("DELETE FROM pending_announcement"),
+				c.env.DB.prepare("DELETE FROM meeting"),
+				c.env.DB.prepare("DELETE FROM meeting_series"),
+				c.env.DB.prepare("DELETE FROM cdt_member"),
+				c.env.DB.prepare("DELETE FROM cdt"),
+				c.env.DB.prepare("DELETE FROM slack_user"),
+				c.env.DB.prepare("DELETE FROM slack_cache"),
+			]);
+		}
+
 		return c.json({ ok: true });
 	});
 

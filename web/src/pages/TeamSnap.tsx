@@ -177,11 +177,21 @@ export function TeamSnapPage({ session }: { session: Session }) {
 
 				{(unmatchedMembers.length > 0 || matchedMembers.length > 0) && (
 					<Card>
-						<CardHeader>
-							<CardTitle>Member Mapping</CardTitle>
-							<CardDescription>
-								Map TeamSnap members to SirSnap users.
-							</CardDescription>
+						<CardHeader className="flex flex-row items-center justify-between">
+							<div>
+								<CardTitle>Member Mapping</CardTitle>
+								<CardDescription>
+									Map TeamSnap members to SirSnap users.
+								</CardDescription>
+							</div>
+							<Button
+								onClick={() => {
+									handleSync();
+								}}
+								disabled={loading}
+							>
+								{loading ? "Syncing..." : "Apply Mappings & Re-sync"}
+							</Button>
 						</CardHeader>
 						<CardContent>
 							<div className="rounded-md border">
@@ -293,15 +303,6 @@ export function TeamSnapPage({ session }: { session: Session }) {
 								</table>
 							</div>
 						</CardContent>
-						<CardFooter className="flex justify-end gap-2">
-							<Button
-								onClick={() => {
-									handleSync();
-								}}
-							>
-								Apply Mappings & Re-sync
-							</Button>
-						</CardFooter>
 					</Card>
 				)}
 			</div>
