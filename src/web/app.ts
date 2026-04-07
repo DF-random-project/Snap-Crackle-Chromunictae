@@ -597,22 +597,6 @@ export function createWebApp(_env: Env) {
 		const shouldAnnounceNow = scheduled_at <= now + twoWeeksInSeconds;
 
 		let message_ts: string | null = null;
-		if (channel_id && shouldAnnounceNow) {
-			const botClient = new SlackAPIClient(c.env.SLACK_BOT_TOKEN);
-			await botClient.conversations
-				.join({ channel: channel_id })
-				.catch(() => {});
-			const blocks = buildAnnouncementBlocks(
-				{ id: 0, name, description, scheduled_at, end_time: end_time ?? null },
-				{ yes: [], maybe: [], no: [] },
-			);
-			const posted = (await botClient.chat.postMessage({
-				channel: channel_id,
-				text: `Meeting: ${name}`,
-				blocks,
-			})) as { ts?: string };
-			message_ts = posted.ts ?? null;
-		}
 
 		const result = await c.env.DB.prepare(
 			`INSERT INTO meeting (name, description, scheduled_at, end_time, channel_id, message_ts, cancelled)
@@ -624,11 +608,36 @@ export function createWebApp(_env: Env) {
 				scheduled_at,
 				end_time ?? null,
 				channel_id ?? null,
-				message_ts,
+				"", // Temporary empty message_ts
 			)
 			.run();
 
 		const id = result.meta.last_row_id as number;
+
+		if (channel_id && shouldAnnounceNow) {
+			const botClient = new SlackAPIClient(c.env.SLACK_BOT_TOKEN);
+			await botClient.conversations
+				.join({ channel: channel_id })
+				.catch(() => {});
+			const blocks = buildAnnouncementBlocks(
+				{ id, name, description, scheduled_at, end_time: end_time ?? null },
+				{ yes: [], maybe: [], no: [] },
+			);
+			const posted = (await botClient.chat.postMessage({
+				channel: channel_id,
+				text: `Meeting: ${name}`,
+				blocks,
+			})) as { ts?: string };
+
+			message_ts = posted.ts ?? null;
+
+			if (message_ts) {
+				await c.env.DB.prepare("UPDATE meeting SET message_ts = ? WHERE id = ?")
+					.bind(message_ts, id)
+					.run();
+			}
+		}
+
 		return c.json(
 			{
 				id,
@@ -804,22 +813,6 @@ export function createWebApp(_env: Env) {
 			const shouldAnnounceNow = ts <= now + twoWeeksInSeconds;
 			const end_time = duration_minutes ? ts + duration_minutes * 60 : null;
 
-			if (channel_id && shouldAnnounceNow) {
-				try {
-					await botClient.conversations.join({ channel: channel_id });
-				} catch {}
-				const blocks = buildAnnouncementBlocks(
-					{ id: 0, name, description, scheduled_at: ts, end_time },
-					{ yes: [], maybe: [], no: [] },
-				);
-				const posted = (await botClient.chat.postMessage({
-					channel: channel_id,
-					text: `Meeting: ${name}`,
-					blocks,
-				})) as { ts?: string };
-				message_ts = posted.ts ?? null;
-			}
-
 			const result = await c.env.DB.prepare(
 				`INSERT INTO meeting (series_id, name, description, scheduled_at, end_time, channel_id, message_ts, cancelled)
          VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
@@ -831,11 +824,38 @@ export function createWebApp(_env: Env) {
 					ts,
 					end_time,
 					channel_id ?? null,
-					message_ts,
+					"", // Temporary empty message_ts
 				)
 				.run();
+
+			const id = result.meta.last_row_id as number;
+
+			if (channel_id && shouldAnnounceNow) {
+				try {
+					await botClient.conversations.join({ channel: channel_id });
+				} catch {}
+				const blocks = buildAnnouncementBlocks(
+					{ id, name, description, scheduled_at: ts, end_time },
+					{ yes: [], maybe: [], no: [] },
+				);
+				const posted = (await botClient.chat.postMessage({
+					channel: channel_id,
+					text: `Meeting: ${name}`,
+					blocks,
+				})) as { ts?: string };
+				message_ts = posted.ts ?? null;
+
+				if (message_ts) {
+					await c.env.DB.prepare(
+						"UPDATE meeting SET message_ts = ? WHERE id = ?",
+					)
+						.bind(message_ts, id)
+						.run();
+				}
+			}
+
 			created.push({
-				id: result.meta.last_row_id as number,
+				id,
 				scheduled_at: ts,
 				end_time,
 				message_ts,
@@ -913,15 +933,18 @@ export function createWebApp(_env: Env) {
 			const seriesId = seriesResult.meta.last_row_id as number;
 
 			for (const event of Object.values(events)) {
-				if (event.type !== "VEVENT") continue;
+				// @ts-expect-line TypeScript type for node-ical VEvent missing things
+				if (event?.type !== "VEVENT") continue;
+				// biome-ignore lint/suspicious/noExplicitAny: node-ical types are inaccurate
+				const vEvent = event as any;
 
-				const start = new Date(event.start);
+				const start = new Date(vEvent.start);
 				const scheduled_at = Math.floor(start.getTime() / 1000);
 
 				// Skip past events based on their end time (or start time + fallback)
 				let end_time = null;
-				if (event.end) {
-					end_time = Math.floor(new Date(event.end).getTime() / 1000);
+				if (vEvent.end) {
+					end_time = Math.floor(new Date(vEvent.end).getTime() / 1000);
 				}
 
 				let defaultMeetingLength = 3;
@@ -936,7 +959,7 @@ export function createWebApp(_env: Env) {
 
 				// When parsing ICS `start` and `end` they come in as UTC strings but node-ical correctly
 				// adjusts them. The issue is likely the time of the worker comparing against `now`.
-				// By skipping the `end_time` logic and ensuring the fallback logic accurately checks 
+				// By skipping the `end_time` logic and ensuring the fallback logic accurately checks
 				// the end of the "In Progress" window we avoid accidentally importing slightly past meetings.
 				const isPast = end_time
 					? end_time <= now
@@ -946,8 +969,8 @@ export function createWebApp(_env: Env) {
 					continue;
 				}
 
-				const name = event.summary || "Imported Meeting";
-				const description = event.description || "";
+				const name = vEvent.summary || "Imported Meeting";
+				const description = vEvent.description || "";
 				const isCancelled =
 					name.toLowerCase().includes("[canceled]") ||
 					name.toLowerCase().includes("[cancelled]");
@@ -969,23 +992,6 @@ export function createWebApp(_env: Env) {
 				let message_ts: string | null = null;
 				const shouldAnnounceNow = scheduled_at <= now + twoWeeksInSeconds;
 
-				if (body.channel_id && shouldAnnounceNow && !isCancelled) {
-					try {
-						const blocks = buildAnnouncementBlocks(
-							{ id: 0, name: cleanName, description, scheduled_at, end_time },
-							{ yes: [], maybe: [], no: [] },
-						);
-						const posted = (await botClient.chat.postMessage({
-							channel: body.channel_id,
-							text: `Meeting: ${cleanName}`,
-							blocks,
-						})) as { ts?: string };
-						message_ts = posted.ts ?? null;
-					} catch (err) {
-						console.error("Failed to announce imported meeting", err);
-					}
-				}
-
 				const result = await c.env.DB.prepare(
 					`INSERT INTO meeting (series_id, name, description, scheduled_at, end_time, channel_id, message_ts, cancelled)
 					 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -997,13 +1003,40 @@ export function createWebApp(_env: Env) {
 						scheduled_at,
 						end_time,
 						channel_id ?? "", // Schema requires NOT NULL for channel_id
-						message_ts ?? "", // Schema requires NOT NULL for message_ts
+						"", // Temporary empty message_ts
 						isCancelled ? 1 : 0,
 					)
 					.run();
 
+				const id = result.meta.last_row_id as number;
+
+				if (body.channel_id && shouldAnnounceNow && !isCancelled) {
+					try {
+						const blocks = buildAnnouncementBlocks(
+							{ id, name: cleanName, description, scheduled_at, end_time },
+							{ yes: [], maybe: [], no: [] },
+						);
+						const posted = (await botClient.chat.postMessage({
+							channel: body.channel_id,
+							text: `Meeting: ${cleanName}`,
+							blocks,
+						})) as { ts?: string };
+						message_ts = posted.ts ?? null;
+
+						if (message_ts) {
+							await c.env.DB.prepare(
+								"UPDATE meeting SET message_ts = ? WHERE id = ?",
+							)
+								.bind(message_ts, id)
+								.run();
+						}
+					} catch (err) {
+						console.error("Failed to announce imported meeting", err);
+					}
+				}
+
 				created.push({
-					id: result.meta.last_row_id as number,
+					id,
 					name: cleanName,
 					scheduled_at,
 					end_time,
