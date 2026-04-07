@@ -366,10 +366,7 @@ function AdminCdtsView() {
 								Slack Channel{" "}
 								<span className="text-muted-foreground">(optional)</span>
 							</label>
-							<ChannelPicker
-								value={newChannelId}
-								onChange={setNewChannelId}
-							/>
+							<ChannelPicker value={newChannelId} onChange={setNewChannelId} />
 						</div>
 						<div className="space-y-2">
 							<label htmlFor="user-picker" className="font-medium text-xs">

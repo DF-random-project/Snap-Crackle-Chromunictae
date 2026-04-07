@@ -291,10 +291,7 @@ function CreateMeetingDialog({
 							Slack Channel{" "}
 							<span className="text-muted-foreground">(for announcement)</span>
 						</label>
-						<ChannelPicker
-							value={channel}
-							onChange={setChannel}
-						/>
+						<ChannelPicker value={channel} onChange={setChannel} />
 					</div>
 
 					<Separator />
@@ -582,30 +579,22 @@ function AdminMeetingsView() {
 		api.getAdminMeetings().then(setMeetings);
 	}, []);
 
-	const handleCancel = useCallback(
-		async (m: AdminMeeting) => {
-			const newVal = !m.cancelled;
+	const handleCancel = useCallback(async (m: AdminMeeting) => {
+		const newVal = !m.cancelled;
+		setMeetings((prev) =>
+			prev.map((x) => (x.id === m.id ? { ...x, cancelled: newVal } : x)),
+		);
+		await api.cancelMeeting(m.id, newVal).catch(() => {
 			setMeetings((prev) =>
-				prev.map((x) => (x.id === m.id ? { ...x, cancelled: newVal } : x)),
+				prev.map((x) => (x.id === m.id ? { ...x, cancelled: m.cancelled } : x)),
 			);
-			await api.cancelMeeting(m.id, newVal).catch(() => {
-				setMeetings((prev) =>
-					prev.map((x) =>
-						x.id === m.id ? { ...x, cancelled: m.cancelled } : x,
-					),
-				);
-			});
-		},
-		[setMeetings],
-	);
+		});
+	}, []);
 
-	const handleDelete = useCallback(
-		async (id: number) => {
-			await api.deleteMeeting(id);
-			setMeetings((prev) => prev.filter((x) => x.id !== id));
-		},
-		[setMeetings],
-	);
+	const handleDelete = useCallback(async (id: number) => {
+		await api.deleteMeeting(id);
+		setMeetings((prev) => prev.filter((x) => x.id !== id));
+	}, []);
 
 	// Use useMemo to prevent recreating the columns array on every render
 	// which prevents the DataTable and underlying images from re-rendering
