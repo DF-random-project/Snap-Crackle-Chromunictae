@@ -1329,7 +1329,11 @@ export function MeetingsPage({ session }: { session: Session }) {
 						onClick={handleCopyCalendar}
 						className="gap-2"
 					>
-						{copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+						{copied ? (
+							<Check className="size-4" />
+						) : (
+							<Copy className="size-4" />
+						)}
 						{copied ? "Copied!" : "Calendar Feed"}
 					</Button>
 				</div>

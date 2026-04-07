@@ -55,20 +55,23 @@ export function createWebApp(_env: Env) {
 		ics += "METHOD:PUBLISH\r\n";
 		ics += "X-WR-CALNAME:SirSnap Events\r\n";
 
-		const now = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+		const now =
+			new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 
 		for (const m of rows.results) {
-			const start = new Date(m.scheduled_at * 1000)
-				.toISOString()
-				.replace(/[-:]/g, "")
-				.split(".")[0] + "Z";
-			
+			const start =
+				new Date(m.scheduled_at * 1000)
+					.toISOString()
+					.replace(/[-:]/g, "")
+					.split(".")[0] + "Z";
+
 			// Default to 3 hours if no end time is specified
 			const endTimeSeconds = m.end_time || m.scheduled_at + 3 * 60 * 60;
-			const end = new Date(endTimeSeconds * 1000)
-				.toISOString()
-				.replace(/[-:]/g, "")
-				.split(".")[0] + "Z";
+			const end =
+				new Date(endTimeSeconds * 1000)
+					.toISOString()
+					.replace(/[-:]/g, "")
+					.split(".")[0] + "Z";
 
 			ics += "BEGIN:VEVENT\r\n";
 			ics += `DTSTAMP:${now}\r\n`;
@@ -76,17 +79,17 @@ export function createWebApp(_env: Env) {
 			ics += `DTSTART:${start}\r\n`;
 			ics += `DTEND:${end}\r\n`;
 			ics += `SUMMARY:${m.cancelled === 1 ? "[CANCELED] " : ""}${m.name.replace(/\r?\n/g, "\\n")}\r\n`;
-			
+
 			if (m.description) {
 				ics += `DESCRIPTION:${m.description.replace(/\r?\n/g, "\\n")}\r\n`;
 			}
-			
+
 			if (m.cancelled === 1) {
 				ics += "STATUS:CANCELLED\r\n";
 			} else {
 				ics += "STATUS:CONFIRMED\r\n";
 			}
-			
+
 			ics += "END:VEVENT\r\n";
 		}
 
@@ -1036,13 +1039,16 @@ export function createWebApp(_env: Env) {
 
 				const name = vEvent.summary || "Imported Meeting";
 				let description = vEvent.description || "";
-				
+
 				// Clean up redundant TeamSnap timezone strings
 				if (typeof description === "string") {
 					// Strip the entire line if it contains Arrival Time
 					description = description.replace(/^.*Arrival Time:.*\n?/gim, "");
 					// Also clean up any lingering timezone strings
-					description = description.replace(/\s*\([A-Za-z]+ Time \(US & Canada\)\)/gi, "");
+					description = description.replace(
+						/\s*\([A-Za-z]+ Time \(US & Canada\)\)/gi,
+						"",
+					);
 					description = description.trim();
 				}
 
@@ -1195,13 +1201,36 @@ export function createWebApp(_env: Env) {
 	});
 
 	api.get("/admin/stats", requireAdmin(), async (c) => {
-		const [users, meetings, pastMeetings, pendingAnnouncements, cdts, attendance] = await Promise.all([
-			c.env.DB.prepare("SELECT COUNT(*) as count FROM slack_user").first<{ count: number }>(),
-			c.env.DB.prepare("SELECT COUNT(*) as count FROM meeting WHERE cancelled = 0 AND (end_time IS NULL OR end_time > ?) AND (end_time IS NOT NULL OR scheduled_at + (3 * 60 * 60) > ?)").bind(Math.floor(Date.now() / 1000), Math.floor(Date.now() / 1000)).first<{ count: number }>(),
-			c.env.DB.prepare("SELECT COUNT(*) as count FROM meeting WHERE cancelled = 0 AND ((end_time IS NOT NULL AND end_time <= ?) OR (end_time IS NULL AND scheduled_at + (3 * 60 * 60) <= ?))").bind(Math.floor(Date.now() / 1000), Math.floor(Date.now() / 1000)).first<{ count: number }>(),
-			c.env.DB.prepare("SELECT COUNT(*) as count FROM pending_announcement").first<{ count: number }>(),
-			c.env.DB.prepare("SELECT COUNT(*) as count FROM cdt").first<{ count: number }>(),
-			c.env.DB.prepare("SELECT COUNT(*) as count FROM attendance").first<{ count: number }>(),
+		const [
+			users,
+			meetings,
+			pastMeetings,
+			pendingAnnouncements,
+			cdts,
+			attendance,
+		] = await Promise.all([
+			c.env.DB.prepare("SELECT COUNT(*) as count FROM slack_user").first<{
+				count: number;
+			}>(),
+			c.env.DB.prepare(
+				"SELECT COUNT(*) as count FROM meeting WHERE cancelled = 0 AND (end_time IS NULL OR end_time > ?) AND (end_time IS NOT NULL OR scheduled_at + (3 * 60 * 60) > ?)",
+			)
+				.bind(Math.floor(Date.now() / 1000), Math.floor(Date.now() / 1000))
+				.first<{ count: number }>(),
+			c.env.DB.prepare(
+				"SELECT COUNT(*) as count FROM meeting WHERE cancelled = 0 AND ((end_time IS NOT NULL AND end_time <= ?) OR (end_time IS NULL AND scheduled_at + (3 * 60 * 60) <= ?))",
+			)
+				.bind(Math.floor(Date.now() / 1000), Math.floor(Date.now() / 1000))
+				.first<{ count: number }>(),
+			c.env.DB.prepare(
+				"SELECT COUNT(*) as count FROM pending_announcement",
+			).first<{ count: number }>(),
+			c.env.DB.prepare("SELECT COUNT(*) as count FROM cdt").first<{
+				count: number;
+			}>(),
+			c.env.DB.prepare("SELECT COUNT(*) as count FROM attendance").first<{
+				count: number;
+			}>(),
 		]);
 
 		return c.json({
