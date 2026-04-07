@@ -42,17 +42,19 @@ teamsnap.get("/sync", requireAdmin(), async (c) => {
 		const members: Record<string, any>[] = [];
 
 		for (const item of collection.items) {
-			const typeLink = item.links?.find((l) => l.rel === "type");
-			if (!typeLink) continue;
+			const isEvent = item.href.includes("/events/");
+			const isMember = item.href.includes("/members/");
 
-			const type = typeLink.href.split("/").pop() || "";
-			if (type === "event") {
+			if (isEvent) {
 				const data = extractData(item);
-				const startDate = new Date(data.start_date as string).getTime();
+				const startDateStr = data.start_date as string;
+				if (!startDateStr) continue;
+
+				const startDate = new Date(startDateStr).getTime();
 				if (startDate > cutoffMs && startDate < Date.now()) {
 					events.push(data);
 				}
-			} else if (type === "member") {
+			} else if (isMember) {
 				members.push(extractData(item));
 			}
 		}
@@ -65,8 +67,7 @@ teamsnap.get("/sync", requireAdmin(), async (c) => {
 		// biome-ignore lint/suspicious/noExplicitAny: Data is untyped JSON from TS API
 		const availabilities: Record<string, any>[] = [];
 		for (const item of availCollection.items) {
-			const typeLink = item.links?.find((l) => l.rel === "type");
-			if (typeLink?.href.endsWith("/availability")) {
+			if (item.href.includes("/availabilities/")) {
 				availabilities.push(extractData(item));
 			}
 		}
