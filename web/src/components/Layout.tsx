@@ -64,16 +64,17 @@ export function Layout({
 						<span className="text-[13px] text-muted-foreground hidden sm:block">
 							{session.name}
 						</span>
-						<form method="post" action="/logout">
-							<Button
-								variant="ghost"
-								size="sm"
-								type="submit"
-								className="text-[13px] text-muted-foreground h-7 px-2"
-							>
-								Sign out
-							</Button>
-						</form>
+						<Button
+							variant="ghost"
+							size="sm"
+							onClick={async () => {
+								await fetch("/auth/logout", { method: "POST" });
+								window.location.href = "/";
+							}}
+							className="text-[13px] text-muted-foreground h-7 px-2"
+						>
+							Sign out
+						</Button>
 					</div>
 				</div>
 			</header>

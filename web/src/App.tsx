@@ -5,6 +5,7 @@ import { AdminPage } from "./pages/Admin";
 import { MeetingsPage } from "./pages/Meetings";
 import { CdtsPage } from "./pages/Cdts";
 import { TeamPage } from "./pages/Team";
+import { LoginPage } from "./pages/Login";
 
 export default function App() {
 	const [session, setSession] = useState<Session | null | "loading">("loading");
@@ -24,8 +25,7 @@ export default function App() {
 		);
 
 	if (!session) {
-		window.location.href = "/api/auth/login";
-		return null;
+		return <LoginPage />;
 	}
 
 	const path = window.location.pathname;

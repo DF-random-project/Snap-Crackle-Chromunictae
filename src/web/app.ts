@@ -26,11 +26,11 @@ const slugify = (name: string) =>
 export function createWebApp(env: Env) {
 	const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
+	// Server-side auth (must stay here — sets httpOnly cookies)
+	app.route("/auth", authRoutes);
+
 	// JSON API
 	const api = new Hono<{ Bindings: Env; Variables: Variables }>();
-
-	// Server-side auth (must stay here — sets httpOnly cookies)
-	api.route("/auth", authRoutes);
 
 	api.use("*", sessionMiddleware);
 
@@ -863,11 +863,6 @@ export function createWebApp(env: Env) {
 	});
 
 	app.route("/api", api);
-
-	// SPA Fallback for any unmatched non-API routes
-	app.get("*", async (c) => {
-		return c.env.ASSETS.fetch(new Request(new URL("/", c.req.url)));
-	});
 
 	return app;
 }
