@@ -229,11 +229,15 @@ teamsnap.get("/sync", requireAdmin(), async (c) => {
 		}
 
 		if (meetingInserts.length > 0) {
-			// Chunk inserts to avoid D1 max parameter limit (SQLite limit is 100 or 999 vars)
-			const CHUNK_SIZE = 100;
+			// Chunk inserts to avoid D1 max parameter limit (SQLite limit is 100 bound parameters per query)
+			// Each meeting insert has 4 fields (name, scheduledAt, channelId, messageTs)
+			// Plus an auto-increment ID field internally added = ~5 parameters per row
+			// 100 / 5 = 20 max rows per chunk. We use 10 to be safe.
+			const CHUNK_SIZE = 10;
 			for (let i = 0; i < meetingInserts.length; i += CHUNK_SIZE) {
 				const chunk = meetingInserts.slice(i, i + CHUNK_SIZE);
-				await db.insert(meeting).values(chunk).onConflictDoNothing().run();
+				const query = db.insert(meeting).values(chunk).onConflictDoNothing();
+				await query.run();
 			}
 		}
 

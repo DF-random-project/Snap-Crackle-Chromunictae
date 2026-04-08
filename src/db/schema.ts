@@ -1,4 +1,9 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+	integer,
+	primaryKey,
+	sqliteTable,
+	text,
+} from "drizzle-orm/sqlite-core";
 
 export const cdt = sqliteTable("cdt", {
 	id: text("id").primaryKey(),
@@ -47,14 +52,20 @@ export const slackUser = sqliteTable("slack_user", {
 	calendarToken: text("calendar_token").unique(),
 });
 
-export const attendance = sqliteTable("attendance", {
-	meetingId: integer("meeting_id")
-		.notNull()
-		.references(() => meeting.id, { onDelete: "cascade" }),
-	userId: text("user_id").notNull(),
-	status: text("status", { enum: ["yes", "maybe", "no"] }).notNull(),
-	note: text("note").notNull().default(""),
-});
+export const attendance = sqliteTable(
+	"attendance",
+	{
+		meetingId: integer("meeting_id")
+			.notNull()
+			.references(() => meeting.id, { onDelete: "cascade" }),
+		userId: text("user_id").notNull(),
+		status: text("status", { enum: ["yes", "maybe", "no"] }).notNull(),
+		note: text("note").notNull().default(""),
+	},
+	(table) => ({
+		pk: primaryKey({ columns: [table.meetingId, table.userId] }),
+	}),
+);
 
 export const webSession = sqliteTable("web_session", {
 	id: text("id").primaryKey(),
